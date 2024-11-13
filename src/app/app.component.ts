@@ -1,14 +1,9 @@
 import { Component, OnInit,ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import {  ColDef, GridApi } from 'ag-grid-community';
-
-
-
-
-
-
 import { ActionComponent } from './component/action/action.component';
 import { DataService } from './services/data.service';
 import { CustomTextCellEditor } from './component/custom-text-cell-editor/custom-text-cell-editor.component';
+import { SecondCustomComponent } from './component/second-custom/second-custom.component';
 
 @Component({
   selector: 'app-root',
@@ -18,37 +13,32 @@ import { CustomTextCellEditor } from './component/custom-text-cell-editor/custom
 })
 export class AppComponent implements OnInit {
 
+
   constructor(
     private dataService: DataService,
     // private authService: AuthService,
     private cdr: ChangeDetectorRef,
     ) {}
+
+
+
   
-  //public columnDefs: ColDef[];   // Define AG Grid columns
+  
   public rowData: any[]=[];          // Data to be displayed in AG Grid
   public gridApi!: GridApi;
   public gridColumnApi: any;
-  isCreatingNewRow: boolean = false; // Flag to track row creation state
+  public isCreatingNewRow: boolean = false; // Flag to track row creation state
   public duplicateError: boolean = false; // Flag to track if a duplicate is found
   
   public duplicateMessage: string = ''; // Message for duplicate warning ,borderBottom: '2px solid #ccc'
   public clickedOnCreateButton:boolean=false; //for disabling other button
+  public eventDataWarning=false;
 
 
 
   public columnDefs: ColDef[] = [
-    { headerName: 'Country Name', field: 'entityBusinessName', editable: true,
-    //   cellStyle: params =>  params.data.isNew ? { padding: '10px', borderBottom: '2px solid #ccc' } : {},
-    // cellRenderer: params =>   params.data.isNew ? `<input placeholder="Enter Country Name" />` : params.value,
-    // cellClass: params => params.data.isNew ? 'ag-row ag-row-new isNew' : '', 
-
-
-    // cellEditor: 'agTextCellEditor', // Use AG Grid's built-in text editor
-    // cellEditorParams: {
-    //   // Placeholder within the editor cell (Note: AG Grid doesn't support placeholders directly)
-    //   placeholder: 'Enter Country Name'
-    // },
-    // cellStyle: params => params.data.isNew ? { padding: '10px' } : {}
+    {
+       headerName: 'Country Name', field: 'entityBusinessName', editable: true,
 
     cellRenderer: params => {
       if (params.data.isNew) {
@@ -58,7 +48,7 @@ export class AppComponent implements OnInit {
             <input 
               value="${params.value || ''}"
               placeholder="Enter Country"
-              style="width: calc(100% - 20px); padding: 8px; font-size: 14px; ${params.data.isDuplicate ? 'border: 1px solid red;' : ''}"
+              style="width: calc(100% - 20px); padding: 8px; font-size: 14px; }"
             />
             <div class="duplicate-warning" style="color: red; font-size: 12px;">
             ${warning || ''}
@@ -68,27 +58,34 @@ export class AppComponent implements OnInit {
       }
       return params.value;
     },
-    cellEditor: 'customTextCellEditor',
-    cellEditorParams: {
-      placeholder: 'Enter Country'
-    },
-    //cellStyle: params => params.data.isNew ? { padding: '10px' } : {},
 
-    cellStyle: params => {
-      const style = {}; // Starting with an empty object
+    cellEditor: 'customTextCellEditor',
+
+    // cellStyle: params => {
+    //   const style = {}; // Starting with an empty object
     
-      // Apply padding if the row is new
-      if (params.data.isNew) {
-        style['padding'] = '10px';
-      }
-      // Add red border for duplicates
-      console.log(params.data.duplicateError)
-      if (params.data.duplicateError) {
-        style['border'] = '2px solid red';
-      }
+    //   // Apply padding if the row is new
+    //   if (params.data.isNew) {
+    //     style['padding'] = '10px';
+    //   }
+    //   // Add red border for duplicates
+    //   console.log(params)
+    //   console.log(params.data.duplicateField === params.colDef.field && params.data.duplicateError)
+
+    //   const bool=params.data.duplicateError
+    //   console.log(params.data.duplicateField === params.colDef.field)
+    //   if (params.data.duplicateField === params.colDef.field && params.data.duplicateError) {
+    //     console.log('hi')
+    //     style['border'] = '2px solid red';
+    //   }else{
+    //     style['border'] = '1px none blue';
+    //   }
       
-      return style;
-    }
+    //   return style;
+    // }
+
+   
+
     
     
     
@@ -123,21 +120,21 @@ export class AppComponent implements OnInit {
       placeholder: 'Enter Abbreviation'
     },
     //cellStyle: params => params.data.isNew ? { padding: '10px' } : {},
-    cellStyle: params => {
-      const style = {}; // Starting with an empty object
+    // cellStyle: params => {
+    //   const style = {}; // Starting with an empty object
     
-      // Apply padding if the row is new
-      if (params.data.isNew) {
-        style['padding'] = '10px';
-      }
-      // Add red border for duplicates
-      console.log(params.data.duplicateError)
-      if (params.data.duplicateError) {
-        style['border'] = '2px solid red';
-      }
+    //   // Apply padding if the row is new
+    //   if (params.data.isNew) {
+    //     style['padding'] = '10px';
+    //   }
+    //   // Add red border for duplicates
+     
+    //   if (params.data.duplicateError) {
+    //     style['border'] = '2px solid red';
+    //   }
       
-      return style;
-    }
+    //   return style;
+    // }
     },
     { headerName: 'Last Updated By', field: 'createdByUser' ,},
     { headerName: 'Last Modified on', field: 'effectiveDateFrom', },
@@ -157,14 +154,19 @@ export class AppComponent implements OnInit {
     }
   ];
 
+
+
+
+
   // Default column settings for AG Grid
   public defaultColDef = {
      //flex: 1,
-      resizable: true 
+      resizable: true
     };
    // Register framework components, such as custom cell renderers
   public frameworkComponents = { actionCellRenderer: ActionComponent,
-    customTextCellEditor: CustomTextCellEditor
+    // customTextCellEditor: CustomTextCellEditor
+    customTextCellEditor:SecondCustomComponent
   };
 
 
@@ -404,41 +406,80 @@ export class AppComponent implements OnInit {
   //   }
   // }
 
-
+///break
  
-  onCellValueChanged(event) {
+  // onCellValueChanged(event) {
 
-    const editedField = event.colDef.field;
-    const editedValue = event.data[editedField];
+  //   const editedField = event.colDef.field;
+  //   const editedValue = event.data[editedField];
   
-    // Clear warning for the edited field initially
-    event.data[`${editedField}Warning`] = '';
-    event.data.duplicateError = false; // Reset duplicate error flag
+  //   // Clear warning for the edited field initially
+  //   event.data[`${editedField}Warning`] = '';
+  //   event.data.duplicateError = false; // Reset duplicate error flag
+  //   event.data.duplicateField = null; // Clear any previous duplicate field
+
+
+  //   // Check if there is a duplicate only in the column being edited
+  //   const isDuplicate = this.rowData.some(
+  //     row => row[editedField] === editedValue && row !== event.data
+  //   );
   
-    // Check if there is a duplicate only in the column being edited
-    const isDuplicate = this.rowData.some(
-      row => row[editedField] === editedValue && row !== event.data
-    );
-  
-    // If a duplicate is found, set the warning message for this column
-    if (isDuplicate) {
-      event.data[`${editedField}Warning`] = 'Data already exists';
-      event.data.duplicateError = true;
-    }
+  //   // If a duplicate is found, set the warning message for this column
+  //   if (isDuplicate) {
+  //     event.data[`${editedField}Warning`] = 'Data already exists';
+  //     event.data.duplicateError = true;
+  //     event.data.duplicateField = editedField; // Track the field with the error
+
+  //   }
     
-    // Debugging console log to verify warning status
-    console.log(`${editedField} warning:`, event.data[`${editedField}Warning`]);
-    this.cdr.detectChanges();
+    
+  //   // Debugging console log to verify warning status
+  //   console.log(`${editedField} warning:`, event.data[`${editedField}Warning`]);
+    
   
-    // Refresh the entire row to display the warning properly
-    this.gridApi.refreshCells({
-      rowNodes: [event.node],
-      force: true,
+  //   // Refresh the entire row to display the warning properly
+  //   if (isDuplicate || event.data[`${editedField}Warning`] === '') {
+  //   this.gridApi.refreshCells({
+  //     rowNodes: [event.node],
+  //     columns: [editedField], 
+  //     force: true,
       
-    });
+  //   });
+  // }
+  //   if(event.data[`${editedField}Warning`]!=='') this.eventDataWarning=true
+   
 
     
-  }
+
+    
+  // }
+
+
+
+
+// New onCellValueChanged method
+// onCellValueChanged(params: any) {
+//   const updatedValue = params.data.countryCode;
+//   const columnField = params.colDef.field;
+
+//   // Loop through all rows to check for duplicates
+//   const duplicateExists = this.rowData.some((row: any) =>
+//     row !== params.data && row[columnField] === updatedValue
+//   );
+
+//   // Apply style based on duplication
+//   params.node.setDataValue(
+//     columnField,
+//     updatedValue
+//   );
+
+//   params.api.refreshCells({
+//     force: true,
+//     columns: [columnField]
+//   });
+// }
+
+
   
   
   
@@ -457,6 +498,7 @@ export class AppComponent implements OnInit {
   //   );
   // }
 
+  ///check
   checkForDuplicates(value: string, field: string,currentRowId:string): boolean {
     return this.rowData.some(
       row => row[field] === value && row.id !== currentRowId

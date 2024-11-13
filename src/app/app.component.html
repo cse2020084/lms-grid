@@ -10,7 +10,7 @@
   [frameworkComponents]="frameworkComponents"
   (gridReady)="onGridReady($event)"
   [gridOptions]="gridOptions"
-  (cellValueChanged)="onCellValueChanged($event)"
+  
   [pagination]="true"
   [paginationAutoPageSize]="true"
   [singleClickEdit]="true"
@@ -19,3 +19,6 @@
 </ag-grid-angular>
 <div *ngIf="duplicateError" class="error-message">{{ duplicateMessage }}</div>
 </div>
+
+
+<!-- (cellValueChanged)="onCellValueChanged($event)" -->

@@ -99,7 +99,7 @@
     }
   }
 
-  .ag-container{
+  .ag-container{ 
 
     overflow-x: auto; /* Enables horizontal scroll if columns exceed container width */
 
@@ -135,6 +135,7 @@
   background-color:  #f9f9f9; /* Light background for distinction */
   border-bottom: 2px solid #ddd; /* Separator line */
   margin-bottom: 15px; /* Adds spacing to prevent overlap */
+  
 }
 
 /* Style cells within the temporary row for padding and spacing */
@@ -148,11 +149,12 @@
   padding: 10px;
   box-sizing: border-box;
   font-size: 14px;
-  margin-bottom: 20px;
+  margin-bottom: 20px; 
+  
 }
 
-.duplicate-border {
-  border: 2px solid red !important;
-}
+
+
+ 
   
   

@@ -9,12 +9,14 @@ import { AgGridModule } from 'ag-grid-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { CustomTextCellEditor } from './component/custom-text-cell-editor/custom-text-cell-editor.component';
+import { SecondCustomComponent } from './component/second-custom/second-custom.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     ActionComponent,
-    CustomTextCellEditor
+    CustomTextCellEditor,
+    SecondCustomComponent
   ],
   imports: [
     BrowserModule,

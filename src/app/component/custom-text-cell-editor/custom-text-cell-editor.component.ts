@@ -28,6 +28,7 @@ import {  GridOptions, ICellEditorParams } from 'ag-grid-community';
         display: flex;
         flex-direction: column;
         align-items: flex-start;
+        
       }
       .custom-input {
         width: calc(100% - 16px); /* Ensure input doesn’t touch borders */
@@ -74,6 +75,7 @@ export class CustomTextCellEditor implements ICellEditorAngularComp {
  
   agInit(params: ICellEditorParams & { placeholder: string }): void {
    // this.onEnterPressed(params)
+   
     this.params = params;
     console.log('inside agInit',this.params)
     this.value = this.params.value || '';
@@ -84,8 +86,14 @@ export class CustomTextCellEditor implements ICellEditorAngularComp {
 
     console.log( "param value",this.params.value)
 
-    // Set initial duplicate message (if any)
-   // this.duplicateMessage = `${this.params.colDef.headerName} already exists`;
+    /// Reset duplicate flags when editor initializes
+    this.isDuplicate = false; 
+    this.duplicateMessage = '';
+    this.params.data.duplicateError = false;
+    this.params.data.duplicateField = null;
+
+    // Run an initial duplicate check
+    this.checkForDuplicates();
   }
 
   getValue() {
@@ -106,9 +114,20 @@ export class CustomTextCellEditor implements ICellEditorAngularComp {
   onEnterPressed(params): void {
     console.log('enter get pressed')
     // this.params = params;
+    
+    if(params.value!=='') params.value=''
+    if(this.params.value!=='') this.params.value=''
+    //if(this.value!=='') this.value=''
+
+    console.log(this.params.value)
+
     this.params.api.stopEditing();
     // this.params = params;
     // this.value = this.params.value || '';
+    if(params.value!=='') params.value=''
+    if(this.params.value!=='') this.params.value=''
+
+    console.log(params.value,this.params.value)
 
   }
 
@@ -124,26 +143,34 @@ export class CustomTextCellEditor implements ICellEditorAngularComp {
 
   // Check if the current value duplicates any other values in the column
   checkForDuplicates() {
-   if(this.value){
-    this.isDuplicate = this.params.context.componentParent.checkForDuplicates(
-      this.value,
-      this.params.colDef.field,
-      this.params.node.id // Pass the current row ID
-    );
-    this.duplicateMessage = this.isDuplicate ? `${this.params.colDef.headerName} already exists` : '';
-  }else{
-    this.isDuplicate=false;
-    this.duplicateMessage=''
+    if (this.value) {
+      const isDuplicate = this.params.context.componentParent.checkForDuplicates(
+        this.value,
+        this.params.colDef.field,
+        this.params.node.id
+      );
+      this.isDuplicate = isDuplicate;
+      this.duplicateMessage = isDuplicate ? `${this.params.colDef.headerName} already exists` : '';
+      
+      // Update `duplicateError` flag in the main component row data for consistency
+      this.params.data.duplicateError = isDuplicate;
+      ///
+      this.params.data.duplicateField = isDuplicate ? this.params.colDef.field : null;
+    } else {
+      this.isDuplicate = false;
+      this.duplicateMessage = '';
+      this.params.data.duplicateError = false;
+      ///
+      this.params.data.duplicateField = null;
+    }
+
+    ///
+    this.params.api.refreshCells({
+      rowNodes: [this.params.node],
+      columns: [this.params.colDef.field],
+      force: true,
+  });
   }
-
-  
-
-   // Update the duplicate-warning div in the renderer
-  //  const warningDiv = this.params.eGridCell.querySelector('.duplicate-warning');
-  //  if (warningDiv) {
-  //    warningDiv.textContent = this.isDuplicate ? this.duplicateMessage : '';
-  //  }
- }
 
  // Handles the Enter key press to stop editing and trigger getValue
  
@@ -156,7 +183,7 @@ onKeydown(event: KeyboardEvent): void {
 
  afterGuiAttached() {
    this.input.nativeElement.focus();
-  setTimeout(() => this.input.nativeElement.focus());
+  //setTimeout(() => this.input.nativeElement.focus());
 
 
   // // Simulate an Enter key press without stopping editing
@@ -178,3 +205,11 @@ onKeydown(event: KeyboardEvent): void {
 
 
 // (keydown.enter)="onEnterPressed($event)"
+
+
+
+
+
+
+
+
