@@ -320,9 +320,11 @@ export class AppComponent implements OnInit {
           mode: 'W'
      }
     }
-      this.dataService.saveRowData(item,'countryservice/updateEntity/', updatedRow).then(
-        response => {
+      this.dataService.saveRowData(item,'countryservice/updateEntity', updatedRow).then(
+        (response:any) => {
+          if(response && response.entityID) item.entityID=response.entityID
           console.log('Row posted successfully!', response);
+          
           alert('Row updated successfully!');
         },
         error => {
