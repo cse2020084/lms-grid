@@ -41,7 +41,7 @@ export class AppComponent implements OnInit {
 
   public columnDefs: ColDef[] = [
     {
-       headerName: 'Country Name', field: 'entityBusinessName', editable: true,
+       headerName: 'Country Name', field: 'entityBusinessName', sortable: true ,filter:true,editable: true,
 
     cellRenderer: params => {
       if (params.data.isNew) {
@@ -63,18 +63,18 @@ export class AppComponent implements OnInit {
     },
 
     cellEditor: 'customTextCellEditor',
-    // cellClassRules: {   
+    cellClassRules: {   
       
-    //     'deactivated-row': (params) => params.data.activeFlag !== 1
+        'deactivated-row': (params) => params.data.activeFlag !== 1
       
-    // },
+    },
 
 
     
     
     
    },
-    { headerName: 'Abbreviation', field: 'entityBusinessShortCode', editable: true,
+    { headerName: 'Abbreviation', field: 'entityBusinessShortCode',sortable: true,filter:true,editable: true,
    
     cellRenderer: params => {
       if (params.data.isNew) {
@@ -97,9 +97,9 @@ export class AppComponent implements OnInit {
     cellEditorParams: {
       placeholder: 'Enter Abbreviation'
     },
-    // cellClassRules: {        
-    //   'deactivated-row': (params) => params.data.activeFlag !== 1
-    // },
+    cellClassRules: {        
+      'deactivated-row': (params) => params.data.activeFlag !== 1
+    },
     
 
     },
@@ -110,7 +110,7 @@ export class AppComponent implements OnInit {
       },
     },
     { 
-      headerName: 'Last Modified on', field: 'effectiveDateFrom',cellClassRules: {   
+      headerName: 'Last Modified on', field: 'effectiveDateFrom',sortable: true,cellClassRules: {   
       'deactivated-row': (params) => 
         params.data.activeFlag !== 1
 
@@ -213,6 +213,7 @@ export class AppComponent implements OnInit {
       entityBusinessName: '',
       entityBusinessShortCode: '',
       isNew: true,
+      activeFlag:1,
       rowClass: 'ag-temporary-row' // Apply a custom class for styling
     };
     this.rowData.unshift(newItem);
