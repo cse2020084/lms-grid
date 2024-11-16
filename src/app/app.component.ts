@@ -1,5 +1,5 @@
 import { Component, OnInit,ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import {  ColDef, GridApi } from 'ag-grid-community';
+import {  ColDef, GridApi, RowClassRules } from 'ag-grid-community';
 import { ActionComponent } from './component/action/action.component';
 import { DataService } from './services/data.service';
 import { CustomTextCellEditor } from './component/custom-text-cell-editor/custom-text-cell-editor.component';
@@ -34,6 +34,9 @@ export class AppComponent implements OnInit {
   public clickedOnCreateButton:boolean=false; //for disabling other button
   public eventDataWarning=false;
 
+  public isActive:boolean=true;
+
+
 
 
   public columnDefs: ColDef[] = [
@@ -60,44 +63,19 @@ export class AppComponent implements OnInit {
     },
 
     cellEditor: 'customTextCellEditor',
-
-    // cellStyle: params => {
-    //   const style = {}; // Starting with an empty object
-    
-    //   // Apply padding if the row is new
-    //   if (params.data.isNew) {
-    //     style['padding'] = '10px';
-    //   }
-    //   // Add red border for duplicates
-    //   console.log(params)
-    //   console.log(params.data.duplicateField === params.colDef.field && params.data.duplicateError)
-
-    //   const bool=params.data.duplicateError
-    //   console.log(params.data.duplicateField === params.colDef.field)
-    //   if (params.data.duplicateField === params.colDef.field && params.data.duplicateError) {
-    //     console.log('hi')
-    //     style['border'] = '2px solid red';
-    //   }else{
-    //     style['border'] = '1px none blue';
-    //   }
+    // cellClassRules: {   
       
-    //   return style;
-    // }
+    //     'deactivated-row': (params) => params.data.activeFlag !== 1
+      
+    // },
 
-   
 
     
     
     
    },
     { headerName: 'Abbreviation', field: 'entityBusinessShortCode', editable: true,
-    //    cellStyle: params => params.data.isNew ? { padding: '10px', borderBottom: '2px solid #ccc' } : {},
-    // cellRenderer: params => params.data.isNew ? `<input placeholder="Enter Abbreviation" />` : params.value,
-    // cellClass: params => params.data.isNew ? 'ag-row ag-row-new isNew' : '', 
-
-    // cellStyle: params => {
-    //   return params.data.isNew ? { padding: '10px' } : {};
-    // },
+   
     cellRenderer: params => {
       if (params.data.isNew) {
         return `
@@ -119,37 +97,36 @@ export class AppComponent implements OnInit {
     cellEditorParams: {
       placeholder: 'Enter Abbreviation'
     },
-    //cellStyle: params => params.data.isNew ? { padding: '10px' } : {},
-    // cellStyle: params => {
-    //   const style = {}; // Starting with an empty object
-    
-    //   // Apply padding if the row is new
-    //   if (params.data.isNew) {
-    //     style['padding'] = '10px';
-    //   }
-    //   // Add red border for duplicates
-     
-    //   if (params.data.duplicateError) {
-    //     style['border'] = '2px solid red';
-    //   }
-      
-    //   return style;
-    // }
-    },
-    { headerName: 'Last Updated By', field: 'createdByUser' ,},
-    { headerName: 'Last Modified on', field: 'effectiveDateFrom', },
-    // {
-    //   headerName: 'Update',
-    //   cellRenderer: 'updateRenderer',
-     
+    // cellClassRules: {        
+    //   'deactivated-row': (params) => params.data.activeFlag !== 1
     // },
+    
+
+    },
+    { 
+      headerName: 'Last Updated By', field: 'createdByUser' ,
+      cellClassRules: {       
+        'deactivated-row': (params) => params.data.activeFlag !== 1
+      },
+    },
+    { 
+      headerName: 'Last Modified on', field: 'effectiveDateFrom',cellClassRules: {   
+      'deactivated-row': (params) => 
+        params.data.activeFlag !== 1
+
+
+      
+    },
+  },
+ 
     {
       headerName: 'Actions',
       cellRenderer: 'actionCellRenderer', // Uses custom cell renderer for actions
-      editable: false,
-      // cellClass: params => params.data.isNew ? 'ag-row ag-row-new isNew' : '',
-      // cellStyle: params => params.data.isNew ? { padding: '10px' } : {},
       
+      cellRendererParams: {
+        activateRow: this.activateRow.bind(this),
+        deactivateRow: this.deactivateRow.bind(this)
+      }
       
     }
   ];
@@ -161,7 +138,8 @@ export class AppComponent implements OnInit {
   // Default column settings for AG Grid
   public defaultColDef = {
      //flex: 1,
-      resizable: true
+      resizable: true,
+      
     };
    // Register framework components, such as custom cell renderers
   public frameworkComponents = { actionCellRenderer: ActionComponent,
@@ -239,6 +217,7 @@ export class AppComponent implements OnInit {
     };
     this.rowData.unshift(newItem);
      // Refresh grid to display the new row
+     
      this.gridApi.setRowData(this.rowData); // Refresh grid to display the new row
     this.isCreatingNewRow = true; // Set flag to indicate a new row is being created
     
@@ -283,6 +262,8 @@ export class AppComponent implements OnInit {
         item.isNew = false; // Mark row as saved
         this.isCreatingNewRow = false; // Reset the new row creation flag
         console.log('Row saved successfully');
+        this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
+        this.loadData();
       },
       error => {
         console.error('Error saving row:', error);
@@ -291,14 +272,14 @@ export class AppComponent implements OnInit {
       console.log('error ..')
     });
 
-    this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
-    this.loadData();
+    // this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
+    // this.loadData();
     this.cdr.markForCheck();  // Manually trigger change detection
     this.clickedOnCreateButton=false; // to enable create button again
-    this.gridApi.refreshCells({
+    // this.gridApi.refreshCells({
       
-      force: true,
-    });
+    //   force: true,
+    // });
   }
 
 
@@ -322,6 +303,35 @@ export class AppComponent implements OnInit {
     this.duplicateMessage = ''; // Clear duplicate message
     this.clickedOnCreateButton=false; // to enable create button again
   }
+
+
+// for editing the row
+  
+  editRow(item){
+    const updatedRow={genericManipulationRequestEntity: 
+      {
+          entityID: item.entityID,
+          entityBusinessID: item.entityBusinessID,
+          entityBusinessName: item.entityBusinessName,
+          entityBusinessShortCode: item.entityBusinessShortCode,
+          auditAction: 'U',
+          companyID: 1,
+          createdBy: 1,
+          mode: 'W'
+     }
+    }
+      this.dataService.saveRowData(item,'countryservice/updateEntity/', updatedRow).then(
+        response => {
+          console.log('Row posted successfully!', response);
+          alert('Row updated successfully!');
+        },
+        error => {
+          console.error('Error posting row data', error);
+        }
+      );
+  }
+
+  
 
 
 
@@ -355,174 +365,79 @@ export class AppComponent implements OnInit {
   //   });
   // }
 
+  ///
 
- 
-
-
-  // Update row data on server when a cell value is changed
-  
-
-
-  // check uniqueness in data 
-  // onCellValueChanged(event) {
-  //   const editedField = event.colDef.field;
-  //   const editedValue = event.data[editedField];
-  //   let duplicate = false;
-  //   console.log(duplicate)
-  //   // Check for duplicates for specified unique fields
-  //   if (['entityBusinessName', 'entityBusinessShortCode'].includes(editedField)) {
-  //     duplicate = this.rowData.some(row => row[editedField] === editedValue && row !== event.data);
-      
-      
-  //     // Set error and message based on which field has a duplicate
-      
-  //     if (duplicate) {
-  //       console.log('just checking duplicacy')
-        
-  //       this.duplicateError = true;
-  //       // this.duplicateMessage = `${editedField === 'entityBusinessName' ? 'Entity Business Name' : 'Entity Business Short Code'} already exists`;
-  //       this.duplicateMessage = `data already exists`;
-
-  //       this.cdr.detectChanges();
-            
-  //           // Force cell refresh to display the duplicate message
-  //           this.gridApi.refreshCells({
-  //               rowNodes: [this.gridApi.getDisplayedRowAtIndex(event.node.rowIndex)],
-  //               // rowNodes: [event.node],
-  //               columns: [editedField],
-  //               force: true
-  //           });
-        
-  //     } else {
-  //       this.duplicateError = false;
-  //       this.duplicateMessage = '';
-       
-  //     }
-  
-  //     // Trigger change detection to update the UI immediately
-  //     console.log('duplicacy check',duplicate,this.duplicateError)
-  //     //this.cdr.markForCheck();
-  //     this.cdr.detectChanges();
-  //   }
-  // }
-
-///break
- 
-  // onCellValueChanged(event) {
-
-  //   const editedField = event.colDef.field;
-  //   const editedValue = event.data[editedField];
-  
-  //   // Clear warning for the edited field initially
-  //   event.data[`${editedField}Warning`] = '';
-  //   event.data.duplicateError = false; // Reset duplicate error flag
-  //   event.data.duplicateField = null; // Clear any previous duplicate field
-
-
-  //   // Check if there is a duplicate only in the column being edited
-  //   const isDuplicate = this.rowData.some(
-  //     row => row[editedField] === editedValue && row !== event.data
-  //   );
-  
-  //   // If a duplicate is found, set the warning message for this column
-  //   if (isDuplicate) {
-  //     event.data[`${editedField}Warning`] = 'Data already exists';
-  //     event.data.duplicateError = true;
-  //     event.data.duplicateField = editedField; // Track the field with the error
-
-  //   }
-    
-    
-  //   // Debugging console log to verify warning status
-  //   console.log(`${editedField} warning:`, event.data[`${editedField}Warning`]);
-    
-  
-  //   // Refresh the entire row to display the warning properly
-  //   if (isDuplicate || event.data[`${editedField}Warning`] === '') {
-  //   this.gridApi.refreshCells({
-  //     rowNodes: [event.node],
-  //     columns: [editedField], 
-  //     force: true,
-      
-  //   });
-  // }
-  //   if(event.data[`${editedField}Warning`]!=='') this.eventDataWarning=true
+activateRow(item){
    
-
-    
-
-    
-  // }
-
-
-
-
-// New onCellValueChanged method
-// onCellValueChanged(params: any) {
-//   const updatedValue = params.data.countryCode;
-//   const columnField = params.colDef.field;
-
-//   // Loop through all rows to check for duplicates
-//   const duplicateExists = this.rowData.some((row: any) =>
-//     row !== params.data && row[columnField] === updatedValue
-//   );
-
-//   // Apply style based on duplication
-//   params.node.setDataValue(
-//     columnField,
-//     updatedValue
-//   );
-
-//   params.api.refreshCells({
-//     force: true,
-//     columns: [columnField]
-//   });
-// }
-
-
-  
-  
-  
-  
-
-
-
-
-
-// only for duplicacy check
-  // checkForDuplicates(entityBusinessName: string, entityBusinessShortCode: string): boolean {
-  //   return this.rowData.some(
-  //     (row) =>
-  //       row.entityBusinessName === entityBusinessName ||
-  //       row.entityBusinessShortCode === entityBusinessShortCode
-  //   );
-  // }
-
-  ///check
-  checkForDuplicates(value: string, field: string,currentRowId:string): boolean {
-    return this.rowData.some(
-      row => row[field] === value && row.id !== currentRowId
-    );
-    console.log('values are: '+value,field,currentRowId)
+  const payload= {
+    genericManipulationRequestEntity: {
+      entityID: item.entityID,
+      entityBusinessID: item.entityBusinessID,
+      entityBusinessName: item.entityBusinessName,
+      entityBusinessShortCode: item.entityBusinessShortCode,
+      auditAction: 'A',
+      companyID: 1, //auth.service
+      createdBy: 1, //auth.service
+      mode: 'W'
+    }
   }
 
+  this.dataService.saveRowData(item,'countryservice/activateEntity',payload).then(
+    (result)=>{
+      console.log('activated successfully', result)
+      //item.activeFlag = 1;
+      this.gridApi.refreshCells({ rowNodes: [item], force: true });
+      this.loadData()
+    },
+    (error)=>{
+      console.log('activation error',error)
+    }
+  )
+  
+  this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
+  this.gridApi.refreshCells({    
+    force: true,
+  });
 
-  // Add this method in app.component.ts
-// getRowStyle = (params) => {
-//   // Apply custom styles only for the temporary row
-//   if (params.data.isNew) {
-//     //return { height: '60px', padding: '10px 0' }; // Adjust height and padding as needed
-//     return { 
-//       height: '30px',         // Increase row height for the temporary row
-//       zIndex: 1,              // Bring the row to the front visually
-//       backgroundColor: '#f9f9f9',  // Optional: background color for emphasis
-//       paddingTop: '10px',     // Space between text and row border
-//       paddingBottom: '10px'
-//     };
-//   }
-//   return null;
-// };
 
+
+}
+
+
+deactivateRow(item){
+  const payload= {
+    genericManipulationRequestEntity: {
+      entityID: item.entityID,
+      entityBusinessID: item.entityBusinessID,
+      entityBusinessName: item.entityBusinessName,
+      entityBusinessShortCode: item.entityBusinessShortCode,
+      auditAction: 'D',
+      companyID: 1, //auth.service
+      createdBy: 1, //auth.service
+      mode: 'W'
+    }
+  }
+
+  this.dataService.saveRowData(item,'countryservice/deactivateEntity',payload).then(
+    (result)=>{
+      console.log('deactivated successfully', result)
+      //item.activeFlag = 0;
+      this.loadData()
+      this.gridApi.refreshCells({ rowNodes: [item], force: true });
+    },
+    (error)=>{
+      console.log('deactivation error',error)
+    }
+  )
+  this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
+  this.gridApi.refreshCells({    
+    force: true,
+  });
+}
+ 
+
+
+  
 public clickOnCreatedRow(){
   this.clickedOnCreateButton=true;
 }
@@ -536,21 +451,10 @@ public clickOnCreatedRow(){
   },
   getRowHeight: params => {
     return params.data.isNew ? 100 : 50; // Set 80px for temporary row, 40px for normal rows
-  }
-  //getRowStyle: this.getRowStyle,
-
-  // have added this below
+  },
   
-  //getRowClass: params => params.data?.rowClass || '', // Apply 'ag-temporary-row' if present
- // domLayout: 'autoHeight',
-  
-    //suppressHorizontalScroll: false,
-  // alwaysShowHorizontalScroll:true,
-    
-  // alwaysShowVerticalScroll:true,
-
 };
 
 }
 
-// ${params.context.componentParent.duplicateMessage}
+

@@ -154,6 +154,13 @@
 }
 
 
+///for deactivation of row
+:host ::ng-deep .deactivated-row {
+  background-color: #f0f0f0 !important;
+  pointer-events: none; /* Disable interactions */
+  color: #a0a0a0 !important;
+}
+
 
  
   

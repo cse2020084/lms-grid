@@ -10,10 +10,11 @@
   [frameworkComponents]="frameworkComponents"
   (gridReady)="onGridReady($event)"
   [gridOptions]="gridOptions"
-  
+  [suppressClickEdit]="false"
   [pagination]="true"
   [paginationAutoPageSize]="true"
   [singleClickEdit]="true"
+  [context]="{ componentParent: this }"
 
   >
 </ag-grid-angular>
