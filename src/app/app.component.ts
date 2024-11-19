@@ -4,6 +4,7 @@ import { ActionComponent } from './component/action/action.component';
 import { DataService } from './services/data.service';
 import { CustomTextCellEditor } from './component/custom-text-cell-editor/custom-text-cell-editor.component';
 import { SecondCustomComponent } from './component/second-custom/second-custom.component';
+import { ClearableFloatingFilterComponent } from './component/clearable-floating-filter/clearable-floating-filter.component';
 
 @Component({
   selector: 'app-root',
@@ -45,7 +46,11 @@ export class AppComponent implements OnInit {
     {
        headerName: 'Country Name', field: 'entityBusinessName', sortable: true ,editable: true,
        filter: "agTextColumnFilter",
-      floatingFilter: true,
+       floatingFilter: true,
+       floatingFilterComponentParams: {
+        suppressFilterButton: true, // Removes the default filter button
+      },
+      floatingFilterComponentFramework: ClearableFloatingFilterComponent,
 
     cellRenderer: params => {
       if (params.data.isNew) {
@@ -123,7 +128,7 @@ export class AppComponent implements OnInit {
       },
     },
     { 
-      headerName: 'Last Modified on', field: 'effectiveDateFrom',sortable: true,cellClassRules: {   
+      headerName: 'Last Modified on', field: 'effectiveDateFrom',filter: "agDateColumnFilter",sortable: true,cellClassRules: {   
       'deactivated-row': (params) => 
         params.data.activeFlag !== 1
 

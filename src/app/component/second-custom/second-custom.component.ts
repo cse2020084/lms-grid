@@ -69,12 +69,16 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
   private isFirstClick: boolean = true;
   
   agInit(params: ICellEditorParams): void {
+    console.log('agInit called with params:', params);
     this.params = params;
     this.originalValue = params.value;
     this.value = params.value;
     
     // Initialize validation state
+    // Delay value change processing to allow params to initialize
+  window.setTimeout(() => {
     this.validateField();
+  });
     
     // Set editing started flag
     window.setTimeout(() => {
@@ -102,6 +106,12 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
   }
 
   onValueChange(): void {
+
+    if (!this.params) {
+      console.warn('onValueChange called before params were initialized');
+      return;
+    }
+
     this.checkDuplicates();
     this.validateField();
     this.updateWarningMessage();
@@ -200,7 +210,49 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
   }
 
   private updateGridData(): void {
-    const field = this.params.column.getColId();
-    this.params.node.setDataValue(`${field}Warning`, this.warningMessage);
+    try {
+      // Basic params validation
+      if (!this.params?.node || !this.params?.column) {
+        console.warn('Required grid parameters are not available');
+        return;
+      }
+
+      // Get the current column ID
+      const currentColId = this.params.column.getColId();
+      if (!currentColId) {
+        console.warn('Column ID is not available');
+        return;
+      }
+
+      // Get the warning field name
+      const warningField = `${currentColId}Warning`;
+
+      // Instead of using setDataValue, update the data directly
+      const updatedData = {
+        ...this.params.node.data,
+        [warningField]: this.warningMessage
+      };
+      
+      // Update the entire row data
+      this.params.node.setData(updatedData);
+
+      // Refresh the specific cells
+      if (this.params.api) {
+        this.params.api.refreshCells({
+          rowNodes: [this.params.node],
+          columns: [warningField],
+          force: true
+        });
+      }
+
+    } catch (error) {
+      console.error('Error in updateGridData:', {
+        error,
+        columnExists: !!this.params?.column,
+        nodeExists: !!this.params?.node,
+        currentValue: this.value,
+        warningMessage: this.warningMessage
+      });
+    }
   }
 }

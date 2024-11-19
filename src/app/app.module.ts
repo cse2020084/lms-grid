@@ -10,6 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { CustomTextCellEditor } from './component/custom-text-cell-editor/custom-text-cell-editor.component';
 import { SecondCustomComponent } from './component/second-custom/second-custom.component';
+import { ClearableFloatingFilterComponent } from './component/clearable-floating-filter/clearable-floating-filter.component';
 
 @NgModule({
   declarations: [
@@ -17,6 +18,7 @@ import { SecondCustomComponent } from './component/second-custom/second-custom.c
     ActionComponent,
     CustomTextCellEditor,
     SecondCustomComponent,
+    ClearableFloatingFilterComponent,
     
   ],
   imports: [
