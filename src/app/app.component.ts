@@ -1,5 +1,5 @@
 import { Component, OnInit,ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import {  ColDef, GridApi, RowClassRules } from 'ag-grid-community';
+import {  ColDef, GridApi, PaginationNumberFormatterParams, RowClassRules } from 'ag-grid-community';
 import { ActionComponent } from './component/action/action.component';
 import { DataService } from './services/data.service';
 import { CustomTextCellEditor } from './component/custom-text-cell-editor/custom-text-cell-editor.component';
@@ -36,7 +36,26 @@ export class AppComponent implements OnInit {
   public eventDataWarning=false;
 
   public isActive:boolean=true;
-  public paginationPageSizeSelector: number[] | boolean = [8, 10, 20];
+
+
+  /*------------------*/
+  //for the pagination
+
+  public  pageSizeOptions = [5, 10, 20, 50, 100];
+  public paginationPageSize = 10;
+  public paginationNumberFormatter: (
+    params: PaginationNumberFormatterParams
+  ) => string = function (params) {
+    return '[' + params.value.toLocaleString() + ']';
+  };
+
+  onPageSizeChanged() {
+    const value = (document.getElementById('page-size') as HTMLInputElement)
+      .value;
+    this.gridApi.paginationSetPageSize(Number(value));
+  }
+
+  /*-----------------*/
 
 
 
@@ -44,7 +63,7 @@ export class AppComponent implements OnInit {
 
   public columnDefs: ColDef[] = [
     {
-       headerName: 'Country Name', field: 'entityBusinessName', sortable: true ,editable: true,
+       headerName: 'Country Name', field: 'entityBusinessName', sortable: true ,editable: true,width:250,
        filter: "agTextColumnFilter",
        floatingFilter: true,
        floatingFilterComponentParams: {
@@ -70,29 +89,23 @@ export class AppComponent implements OnInit {
       }
       return params.value;
     },
-
-
-    ///
     cellClassRules: {   
       
       'deactivated-row': (params) => params.data.activeFlag !== 1
     
   },
-    
-
-///
     cellEditor: 'customTextCellEditor',
-    
-
-
-    
-    
     
    },
     {
-       headerName: 'Abbreviation', field: 'entityBusinessShortCode',sortable: true,editable: true,
+       headerName: 'Abbreviation', field: 'entityBusinessShortCode',sortable: true,editable: true,width:230,
       filter: "agTextColumnFilter",
       floatingFilter: true,
+      ///temporary, as i like simple better
+      floatingFilterComponentParams: {
+        suppressFilterButton: true, // Removes the default filter button
+      },
+      floatingFilterComponentFramework: ClearableFloatingFilterComponent,
    
     cellRenderer: params => {
       if (params.data.isNew) {
@@ -122,13 +135,13 @@ export class AppComponent implements OnInit {
 
     },
     { 
-      headerName: 'Last Updated By', field: 'createdByUser' ,
+      headerName: 'Last Updated By', field: 'createdByUser' ,width:230,
       cellClassRules: {       
         'deactivated-row': (params) => params.data.activeFlag !== 1
       },
     },
     { 
-      headerName: 'Last Modified on', field: 'effectiveDateFrom',filter: "agDateColumnFilter",sortable: true,cellClassRules: {   
+      headerName: 'Last Modified on', field: 'effectiveDateFrom',width:330,filter: "agDateColumnFilter",sortable: true,cellClassRules: {   
       'deactivated-row': (params) => 
         params.data.activeFlag !== 1
 
@@ -140,7 +153,7 @@ export class AppComponent implements OnInit {
     {
       headerName: 'Actions',
       cellRenderer: 'actionCellRenderer', // Uses custom cell renderer for actions
-      
+      width:250,
       cellRendererParams: {
         activateRow: this.activateRow.bind(this),
         deactivateRow: this.deactivateRow.bind(this)
@@ -155,7 +168,7 @@ export class AppComponent implements OnInit {
 
   // Default column settings for AG Grid
   public defaultColDef = {
-     //flex: 1,
+      //flex: 1,
       resizable: true,
       paginationPageSizeSelector:  [8, 10, 20],
       
@@ -213,6 +226,7 @@ export class AppComponent implements OnInit {
    onGridReady(params) {
     this.gridApi = params.api;
     this.gridColumnApi = params.columnApi;
+   
 
     // Load data into grid once it's fully initialized
     this.loadData();

@@ -1,8 +1,22 @@
+<div class="above-grid-bar">
+<div class="example-header" >
+  Rows Number:
+  <select (change)="onPageSizeChanged()" id="page-size">
+    <option value="10" selected="">10</option>
+    <option value="50">50</option>
+    <option value="100">100</option>
+    <option value="500">500</option>
+  </select>
+</div>
+
+
 <button (click)="addNewRow()" [disabled]="clickedOnCreateButton">Create</button>
+</div>
 
 <div class="ag-theme-alpine ag-container" >
+
 <ag-grid-angular
-  style="width: 100%; height: 500px;"
+  style="width: 100%; height: 100%; "
   class="ag-theme-alpine"
   [rowData]="rowData"
   [columnDefs]="columnDefs"
@@ -12,10 +26,12 @@
   [gridOptions]="gridOptions"
   [suppressClickEdit]="false"
   [pagination]="true"
-  [paginationAutoPageSize]="true"
+  [paginationPageSize]="paginationPageSize"
+  [paginationNumberFormatter]="paginationNumberFormatter"
+  
   [singleClickEdit]="true"
   [context]="{ componentParent: this }"
-  
+  domLayout="autoHeight"
 
   >
 </ag-grid-angular>
@@ -24,3 +40,4 @@
 
 
 <!-- (cellValueChanged)="onCellValueChanged($event)" -->
+<!-- [paginationAutoPageSize]="true" -->
