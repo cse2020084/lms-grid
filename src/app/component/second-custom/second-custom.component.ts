@@ -5,46 +5,54 @@ import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 @Component({
   selector: 'app-second-custom',
   template: `
-  <div class="editor-container"  (mousedown)="onMouseDown($event)" (click)="onEditorClick($event)">
-    <input
-      #input
-      type="text"
-      [(ngModel)]="value"
-      (ngModelChange)="checkDuplicates()"
-      [class.has-error]="isDuplicate"
-      class="ag-input-field-input ag-text-field-input"
-      (keydown)="onKeyDown($event)"
-      
-      (blur)="onBlur($event)"
-      
-    />
-    <div *ngIf="isDuplicate" class="duplicate-warning">
-      Duplicate value detected!
+    <div class="editor-container" (mousedown)="onMouseDown($event)" (click)="onEditorClick($event)">
+      <input
+        #input
+        type="text"
+        [(ngModel)]="value"
+        (ngModelChange)="onValueChange()"
+        [class.has-error]="isDuplicate || isEmpty"
+        class="ag-input-field-input ag-text-field-input"
+        (keydown)="onKeyDown($event)"
+        (blur)="onBlur($event)"
+      />
+      <div 
+        *ngIf="showWarning" 
+        class="warning-message"
+        [class.duplicate-warning]="isDuplicate"
+        [class.empty-warning]="isEmpty"
+      >
+        {{ warningMessage }}
+      </div>
     </div>
-  </div>
-`,
-styles: [`
-  .editor-container {
-    position: relative;
-    height: 100%;
-  }
-  .has-error {
-    border: 1px solid red !important;
-  }
-  .duplicate-warning {
-    position: absolute;
-    bottom: -11px;
-    left: 0;
-    color: red;
-    font-size: 12px;
-    background: 0;
-    padding: 2px;
-    border: 0 solid #ccc;
-    z-index: 1000;
-    
-  }
-`]
-
+  `,
+  styles: [`
+    .editor-container {
+      position: relative;
+      height: 100%;
+    }
+    .has-error {
+      border: 1px solid red !important;
+    }
+    .warning-message {
+      position: absolute;
+      bottom: -10px;
+      left: 0;
+      font-size: 12px;
+      padding: 2px 4px;
+      border-radius: 2px;
+      z-index: 1000;
+      white-space: nowrap;
+    }
+    .duplicate-warning {
+      color: #d32f2f;
+      
+    }
+    .empty-warning {
+      color: #f57c00;
+      
+    }
+  `]
 })
 export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewInit {
   @ViewChild('input') input!: ElementRef;
@@ -53,17 +61,21 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
   private originalValue: any;
   public value: any;
   public isDuplicate: boolean = false;
-
-  //private isDestroyed: boolean = false;
+  public isEmpty: boolean = false;
+  public showWarning: boolean = false;
+  public warningMessage: string = '';
+  
   private isEditing: boolean = false;
   private isFirstClick: boolean = true;
   
   agInit(params: ICellEditorParams): void {
-    console.log('agInit',params)
     this.params = params;
     this.originalValue = params.value;
     this.value = params.value;
-
+    
+    // Initialize validation state
+    this.validateField();
+    
     // Set editing started flag
     window.setTimeout(() => {
       this.isEditing = true;
@@ -71,24 +83,12 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
   }
 
   ngAfterViewInit() {
-    // Focus on the input element
-    // setTimeout(() => {
-    //   if (!this.isDestroyed) {
-    //   this.input.nativeElement.focus();
-    //   }
-    // });
-
     window.setTimeout(() => {
       this.input.nativeElement.focus();
       this.input.nativeElement.select();
     });
-    console.log('ngAfterView',this.params, this.value)
   }
 
-
-  // Prevent default mouse behavior
-   // Prevent default mouse behavior on the first click
- 
   onMouseDown(event: MouseEvent): void {
     event.stopPropagation();
     if (this.isFirstClick) {
@@ -96,15 +96,20 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
     }
   }
 
-  // Handle editor clicks, stop propagation
   onEditorClick(event: MouseEvent): void {
     event.stopPropagation();
     this.isFirstClick = false;
   }
 
-  // Check for duplicates in the column
+  onValueChange(): void {
+    this.checkDuplicates();
+    this.validateField();
+    this.updateWarningMessage();
+    this.updateGridData();
+  }
+
   checkDuplicates(): void {
-    if (!this.value) {
+    if (!this.value || this.value.trim() === '') {
       this.isDuplicate = false;
       return;
     }
@@ -113,10 +118,8 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
     const rowIndex = this.params.rowIndex;
     const allNodes: any[] = [];
     
-    // Get all row nodes
     this.params.api.forEachNode(node => allNodes.push(node));
     
-    // Check for duplicates excluding the current row
     this.isDuplicate = allNodes.some((node, index) => {
       const cellValue = node.data[columnId];
       return index !== rowIndex && 
@@ -126,110 +129,78 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
   }
 
   getValue(): any {
-    console.log('getValue', this.value)
-    return this.value; 
+    return this.isEmpty ? this.originalValue : this.value.trim();
   }
 
-  // Determines if the editor should stay active
   isCancelBeforeStart(): boolean {
-    console.log('isCancelBeforeStart')
     return false;
   }
 
-  // Determines if the edit should be canceled
   isCancelAfterEnd(): boolean {
-    // Cancel the edit if there's a duplicate value
-    console.log('isCancelAfterEnd')
-    return this.isDuplicate;
+    return this.isDuplicate || this.isEmpty;
   }
 
-  // isPopup(): boolean {
-  //   // This tells AG Grid that our editor is a popup
-  //   // which helps with click event handling
-  //   return true;
-  // }
-
-  // Handle blur events
-  onBlur(event:FocusEvent): void {
-    // Only stop editing if we're actually editing and not handling the first click
-    // if (this.isEditing && !this.isDuplicate) {
-    //   // Small timeout to allow for other click events to process
-    //   setTimeout(() => {
-    //     if (!this.isDestroyed && this.isEditing) {
-    //       this.params.api.stopEditing();
-    //     }
-    //   }, 100);
-    // }
-
-    ///
+  onBlur(event: FocusEvent): void {
+    this.validateField();
+    this.updateWarningMessage();
+    this.updateGridData();
+    
     const relatedTarget = event.relatedTarget as HTMLElement;
     if (!relatedTarget || !this.isTargetInGrid(relatedTarget)) {
-      this.params.api.stopEditing();
+      if (!this.isEmpty && !this.isDuplicate) {
+        this.params.api.stopEditing();
+      }
     }
   }
-  private isTargetInGrid(element: HTMLElement): boolean {
-    return !!element?.closest('.ag-root-wrapper');
-  }
 
-
-  // Handle keydown events
   onKeyDown(event: KeyboardEvent): void {
-    // if (event.key === 'Enter') {
-    //   this.params.api.stopEditing();
-    //   event.preventDefault();
-    // } else if (event.key === 'Escape') {
-    //   this.value = this.originalValue;
-    //   this.params.api.stopEditing();
-    //   event.preventDefault();
-    // }
-
-
-    ///
     if (event.key === 'Enter') {
-      if (!this.isDuplicate) {
+      this.validateField();
+      this.updateWarningMessage();
+      
+      if (!this.isEmpty && !this.isDuplicate) {
         this.params.api.stopEditing();
       }
       event.preventDefault();
     } else if (event.key === 'Escape') {
       this.value = this.originalValue;
+      this.validateField();
+      this.updateWarningMessage();
       this.params.api.stopEditing();
       event.preventDefault();
     }
+
+
+    if (
+      !event.key.match(/[a-zA-Z\s]/) && // Allow only letters and spaces
+      event.key !== 'Backspace' && // Allow Backspace
+      event.key !== 'Tab' // Allow Tab
+    ) {
+      event.preventDefault(); // Block invalid keypresses
+    }
   }
 
-  ///
-  // ngOnDestroy() {
-  //   //this.isDestroyed = true;
-  //   this.isEditing = false;
-  // }
+  private isTargetInGrid(element: HTMLElement): boolean {
+    return !!element?.closest('.ag-root-wrapper');
+  }
 
+  private validateField(): void {
+    this.isEmpty = !this.value || this.value.trim() === '';
+    this.showWarning = this.isEmpty || this.isDuplicate;
+  }
 
-  ///
+  private updateWarningMessage(): void {
+    if (this.isEmpty) {
+      this.warningMessage = 'This field cannot be empty';
+    } else if (this.isDuplicate) {
+      this.warningMessage = 'Duplicate value detected';
+    } else {
+      this.warningMessage = '';
+    }
+  }
 
-
-  // Focus and select can be done after the gui is attached
-//   afterGuiAttached(): void {
-//     console.log('afterGUI')
-//     if (!this.isDestroyed) {
-//     this.input.nativeElement.select();
-//   }
-// }
-
-
-// This is crucial for AG Grid v27
-// focusIn(): void {
-//   window.setTimeout(() => {
-//     this.input.nativeElement.focus();
-//     this.input.nativeElement.select();
-//   });
-// }
-
-// focusOut(): void {
-//   this.input.nativeElement.blur();
-// }
-
-private focusOnInput(): void {
-  this.input.nativeElement.focus();
-  this.input.nativeElement.select();
-}
+  private updateGridData(): void {
+    const field = this.params.column.getColId();
+    this.params.node.setDataValue(`${field}Warning`, this.warningMessage);
+  }
 }

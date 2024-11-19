@@ -35,13 +35,17 @@ export class AppComponent implements OnInit {
   public eventDataWarning=false;
 
   public isActive:boolean=true;
+  public paginationPageSizeSelector: number[] | boolean = [8, 10, 20];
+
 
 
 
 
   public columnDefs: ColDef[] = [
     {
-       headerName: 'Country Name', field: 'entityBusinessName', sortable: true ,filter:true,editable: true,
+       headerName: 'Country Name', field: 'entityBusinessName', sortable: true ,editable: true,
+       filter: "agTextColumnFilter",
+      floatingFilter: true,
 
     cellRenderer: params => {
       if (params.data.isNew) {
@@ -62,19 +66,28 @@ export class AppComponent implements OnInit {
       return params.value;
     },
 
-    cellEditor: 'customTextCellEditor',
+
+    ///
     cellClassRules: {   
       
-        'deactivated-row': (params) => params.data.activeFlag !== 1
-      
-    },
+      'deactivated-row': (params) => params.data.activeFlag !== 1
+    
+  },
+    
+
+///
+    cellEditor: 'customTextCellEditor',
+    
 
 
     
     
     
    },
-    { headerName: 'Abbreviation', field: 'entityBusinessShortCode',sortable: true,filter:true,editable: true,
+    {
+       headerName: 'Abbreviation', field: 'entityBusinessShortCode',sortable: true,editable: true,
+      filter: "agTextColumnFilter",
+      floatingFilter: true,
    
     cellRenderer: params => {
       if (params.data.isNew) {
@@ -139,6 +152,7 @@ export class AppComponent implements OnInit {
   public defaultColDef = {
      //flex: 1,
       resizable: true,
+      paginationPageSizeSelector:  [8, 10, 20],
       
     };
    // Register framework components, such as custom cell renderers
@@ -307,8 +321,16 @@ export class AppComponent implements OnInit {
 
 
 // for editing the row
-  
+  public existingName:string=''
+  public existingShortCode:string=''
+  public existingId:string=''
   editRow(item){
+    console.log('item',item)
+    
+    if(this.existingName===item.entityBusinessName && this.existingShortCode===item.entityBusinessShortCode){
+      alert('Value is unchanged')
+      return
+    }
     const updatedRow={genericManipulationRequestEntity: 
       {
           entityID: item.entityID,
@@ -321,9 +343,12 @@ export class AppComponent implements OnInit {
           mode: 'W'
      }
     }
+    
       this.dataService.saveRowData(item,'countryservice/updateEntity', updatedRow).then(
         (response:any) => {
           if(response && response.entityID) item.entityID=response.entityID
+          this.existingName=response.entityBusinessName
+          this.existingShortCode=response.entityBusinessShortCode
           console.log('Row posted successfully!', response);
           
           alert('Row updated successfully!');
@@ -335,40 +360,6 @@ export class AppComponent implements OnInit {
   }
 
   
-
-
-
-  // Method to handle sending updated row data to the backend
-  // updateRowInServer(updatedRow: any) {
-  //   // Create payload with updated fields
-  //   const payload={genericManipulationRequestEntity: 
-  //     {
-  //         entityID: updatedRow.entityID,
-  //         entityBusinessID: updatedRow.entityBusinessID,
-  //         entityBusinessName: updatedRow.entityBusinessName,
-  //         entityBusinessShortCode: updatedRow.entityBusinessShortCode,
-  //         auditAction: 'U',
-  //         companyID: 1,
-  //         createdBy: 1,
-  //         mode: 'W'
-  //    }
-  //   };
-
-  //   // Send updated data to the server using a service method
-  //   this.dataService.saveRowData(updatedRow,'countryservice/updateEntity/',payload).then(
-  //     (result) => {
-        
-  //       console.log('Row saved successfully');
-  //     },
-  //     error => {
-  //       console.error('Error saving row:', error);
-  //     }
-  //   ).catch((errorMessage) => {
-  //     console.log('error ..')
-  //   });
-  // }
-
-  ///
 
 activateRow(item){
    
@@ -386,21 +377,25 @@ activateRow(item){
   }
 
   this.dataService.saveRowData(item,'countryservice/activateEntity',payload).then(
-    (result)=>{
+    (result:any)=>{
       console.log('activated successfully', result)
+      if(result && result.entityID) item.entityID=result.entityID
       //item.activeFlag = 1;
-      this.gridApi.refreshCells({ rowNodes: [item], force: true });
-      this.loadData()
+     // this.gridApi.refreshCells({ rowNodes: [item], force: true });
+      // Dynamically update the row data
+      item.activeFlag = 1; // Update the activeFlag or other necessary fields
+      this.gridApi.applyTransaction({ update: [item] }); // Dynamically update the row
+      this.cdr.detectChanges(); // Ensure Angular detects the changes
     },
     (error)=>{
       console.log('activation error',error)
     }
   )
   
-  this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
-  this.gridApi.refreshCells({    
-    force: true,
-  });
+  // this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
+  // this.gridApi.refreshCells({    
+  //   force: true,
+  // });
 
 
 
@@ -422,22 +417,33 @@ deactivateRow(item){
   }
 
   this.dataService.saveRowData(item,'countryservice/deactivateEntity',payload).then(
-    (result)=>{
+    (result:any)=>{
       console.log('deactivated successfully', result)
+      if(result && result.entityID) item.entityID=result.entityID
       //item.activeFlag = 0;
-      this.loadData()
-      this.gridApi.refreshCells({ rowNodes: [item], force: true });
+      // Dynamically update the row data
+      item.activeFlag = 0; // Update the activeFlag or other necessary fields
+      this.gridApi.applyTransaction({ update: [item] }); // Dynamically update the row
+      //this.gridApi.refreshCells({ rowNodes: [item], force: true });
+      this.cdr.detectChanges(); // Ensure Angular detects the changes
     },
     (error)=>{
       console.log('deactivation error',error)
     }
   )
-  this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
-  this.gridApi.refreshCells({    
-    force: true,
-  });
+  // this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
+  // this.gridApi.refreshCells({    
+  //   force: true,
+  // });
 }
  
+
+updateRowData(rowData: any): void {
+  const rowNode = this.gridApi.getRowNode(rowData.id); // Use the ID or unique identifier
+  if (rowNode) {
+    this.gridApi.applyTransaction({ update: [rowData] }); // Update the grid row data
+  }
+}
 
 
   

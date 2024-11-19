@@ -16,7 +16,8 @@ import { SecondCustomComponent } from './component/second-custom/second-custom.c
     AppComponent,
     ActionComponent,
     CustomTextCellEditor,
-    SecondCustomComponent
+    SecondCustomComponent,
+    
   ],
   imports: [
     BrowserModule,

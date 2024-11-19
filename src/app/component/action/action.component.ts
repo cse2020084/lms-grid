@@ -12,8 +12,8 @@ import { DataService } from 'src/app/services/data.service';
    <button  mat-button color="primary" (click)="cancel()">Cancel</button>
  </ng-container>
  <ng-template #defaultTemplate>
-   <button  mat-button color="accent" (click)="edit()" [disabled]="!isActive">Edit</button>
-   <button  mat-button (click)="status()" [ngClass]="{ active: isActive ,inActive:!isActive}" >{{ isActive ? 'Deactivate' : 'Activate' }}</button>
+   <button  mat-button color="accent" (click)="edit()" [disabled]="params.data.activeFlag !== 1">Edit</button>
+   <button  mat-button (click)="status()" [ngClass]="{ active: params.data.activeFlag === 1 ,inActive:params.data.activeFlag !== 1}" > {{ params.data.activeFlag === 1 ? 'Deactivate' : 'Activate' }}</button>
  </ng-template>
 `,
 styles: [`
@@ -39,7 +39,7 @@ export class ActionComponent implements OnInit,ICellRendererAngularComp {
   agInit(params: any): void {
     this.params = params;
 
-    this.isActive = this.params.data.activeFlag === 1; // Set isActive based on activeFlag
+    // this.updateActiveState();
   }
 
   save() {
@@ -54,28 +54,7 @@ export class ActionComponent implements OnInit,ICellRendererAngularComp {
 
   edit() {
     console.log("Edit action triggered");
-  //   const item = this.params.data; // Row data to be updated
-  //   const updatedRow={genericManipulationRequestEntity: 
-  //    {
-  //        entityID: item.entityID,
-  //        entityBusinessID: item.entityBusinessID,
-  //        entityBusinessName: item.entityBusinessName,
-  //        entityBusinessShortCode: item.entityBusinessShortCode,
-  //        auditAction: 'U',
-  //        companyID: 1,
-  //        createdBy: 1,
-  //        mode: 'W'
-  //   }
-  //  }
-  //    this.dataService.saveRowData(item,'countryservice/updateEntity/', updatedRow).then(
-  //      response => {
-  //        console.log('Row posted successfully!', response);
-  //        alert('Row updated successfully!');
-  //      },
-  //      error => {
-  //        console.error('Error posting row data', error);
-  //      }
-  //    );
+  
 
     
      this.params.context.componentParent.editRow(this.params.data);
@@ -83,97 +62,35 @@ export class ActionComponent implements OnInit,ICellRendererAngularComp {
   }
 
   
+  
+
+
+
+  
+
+
+  refresh(params: any): boolean {
+    this.params = params;
+    
+    return true;
+
+  }
+
+  private updateActiveState(): void {
+    this.isActive = this.params.data.activeFlag === 1; // Update isActive based on parent-provided data
+  }
+
   status() {
     console.log("Toggle action triggered");
-    // this.isActive=!this.isActive
+    this.isActive=!this.isActive
 
     // Notify the parent component about the toggle action
-    if(this.isActive) this.params.context.componentParent.deactivateRow(this.params.data);
+    if(this.params.data.activeFlag === 1) this.params.context.componentParent.deactivateRow(this.params.data);
     else this.params.context.componentParent.activateRow(this.params.data);
 
     // if(this.isActive) this.deactivateRow(this.params.data)
     // else this.activateRow(this.params.data)
 
-    this.isActive=!this.isActive
-  }
-
-
-
-  // activateRow(item){
-  
-  //   const payload= {
-  //     genericManipulationRequestEntity: {
-  //       entityID: item.entityID,
-  //       entityBusinessID: item.entityBusinessID,
-  //       entityBusinessName: item.entityBusinessName,
-  //       entityBusinessShortCode: item.entityBusinessShortCode,
-  //       auditAction: 'A',
-  //       companyID: 1, //auth.service
-  //       createdBy: 1, //auth.service
-  //       mode: 'W'
-  //     }
-  //   }
-  
-  //   this.dataService.saveRowData(item,'countryservice/activateEntity',payload).then(
-  //     (result)=>{
-  //       console.log('activated successfully', result)
-  //       item.activeFlag = 1;
-  //     //  this.gridApi.refreshCells({ rowNodes: [item], force: true });
-  //     alert('Row activated successfully!');
-  //     },
-  //     (error)=>{
-  //       console.log('activation error',error)
-  //     }
-  //   )
-    
-  //   // this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
-  //   // this.gridApi.refreshCells({    
-  //   //   force: true,
-  //   // });
-  
-  
-  
-  // }
-  
-  
-  // deactivateRow(item){
-  //   const payload= {
-  //     genericManipulationRequestEntity: {
-  //       entityID: item.entityID,
-  //       entityBusinessID: item.entityBusinessID,
-  //       entityBusinessName: item.entityBusinessName,
-  //       entityBusinessShortCode: item.entityBusinessShortCode,
-  //       auditAction: 'D',
-  //       companyID: 1, //auth.service
-  //       createdBy: 1, //auth.service
-  //       mode: 'W'
-  //     }
-  //   }
-  
-  //   this.dataService.saveRowData(item,'countryservice/deactivateEntity',payload).then(
-  //     (result)=>{
-  //       console.log('deactivated successfully', result)
-  //       item.activeFlag = 0;
-  //       alert('Row deactivated successfully!');
-  
-  //      // this.gridApi.refreshCells({ rowNodes: [item], force: true });
-  //     },
-  //     (error)=>{
-  //       console.log('deactivation error',error)
-  //     }
-  //   )
-  //   // this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
-  //   // this.gridApi.refreshCells({    
-  //   //   force: true,
-  //   // });
-  // }
-
-
-  refresh(params: any): boolean {
-    this.params = params;
-    // this.isActive = this.params.data.activeFlag === 1;
-    return true;
-
-  }
+    }
 
 }
