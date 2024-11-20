@@ -5,6 +5,7 @@ import { DataService } from './services/data.service';
 import { CustomTextCellEditor } from './component/custom-text-cell-editor/custom-text-cell-editor.component';
 import { SecondCustomComponent } from './component/second-custom/second-custom.component';
 import { ClearableFloatingFilterComponent } from './component/clearable-floating-filter/clearable-floating-filter.component';
+import 'ag-grid-enterprise';
 
 @Component({
   selector: 'app-root',
@@ -63,7 +64,7 @@ export class AppComponent implements OnInit {
 
   public columnDefs: ColDef[] = [
     {
-       headerName: 'Country Name', field: 'entityBusinessName', sortable: true ,editable: true,width:250,
+       headerName: 'Country Name', field: 'entityBusinessName', sortable: true ,editable: true,width:250, checkboxSelection: true,
        filter: "agTextColumnFilter",
        floatingFilter: true,
        floatingFilterComponentParams: {
@@ -482,6 +483,26 @@ public clickOnCreatedRow(){
   },
   
 };
+
+
+// for export in excel and csv
+getDownload(format: string) {
+  const exportParams: any = {};
+
+  if (format.toLowerCase() === 'excel') {
+    // Add Excel-specific formatting options
+    exportParams.fileName = 'data.xlsx'; // Optional: Customize file name
+    exportParams.sheetName = 'Sheet1';   // Optional: Set sheet name
+    this.gridApi.exportDataAsExcel(exportParams);
+  } else if (format.toLowerCase() === 'csv') {
+    // Add CSV-specific formatting options
+    exportParams.fileName = 'data.csv'; // Optional: Customize file name
+    exportParams.columnSeparator = ','; // Optional: Customize separator
+    this.gridApi.exportDataAsCsv(exportParams);
+  } else {
+    console.error('Unsupported format:', format);
+  }
+}
 
 }
 
