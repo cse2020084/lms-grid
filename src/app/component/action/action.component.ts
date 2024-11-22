@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { IDetailCellRenderer } from 'ag-grid-community';
+
 import { DataService } from 'src/app/services/data.service';
 
 @Component({
@@ -12,8 +13,8 @@ import { DataService } from 'src/app/services/data.service';
    <button  mat-button color="primary" (click)="cancel()">Cancel</button>
  </ng-container>
  <ng-template #defaultTemplate>
-   <button  mat-button color="accent" (click)="edit()" [disabled]="params.data.activeFlag !== 1">Edit</button>
-   <button  mat-button (click)="status()" [ngClass]="{ active: params.data.activeFlag === 1 ,inActive:params.data.activeFlag !== 1}" > {{ params.data.activeFlag === 1 ? 'Deactivate' : 'Activate' }}</button>
+   <button  mat-button color="accent" (click)="edit()" [disabled]="params.data.activeFlag !== 1 || this.params.context.componentParent.isCreatingNewRow">Edit</button>
+   <button  mat-button (click)="status()" [ngClass]="{ active: params.data.activeFlag === 1 ,inActive:params.data.activeFlag !== 1}"  [disabled]="this.params.context.componentParent.isCreatingNewRow" > {{ params.data.activeFlag === 1 ? 'Deactivate' : 'Activate' }}</button>
  </ng-template>
 `,
 styles: [`
@@ -28,19 +29,30 @@ styles: [`
 })
 export class ActionComponent implements OnInit,ICellRendererAngularComp {
 
-  public isActive: boolean=true;
 
-  constructor(private dataService:DataService) { }
+
+  public isActive: boolean=true;
+  public clickedOnCreateButton:boolean=false;
+
+  constructor(
+    private dataService:DataService,
+  
+) { }
+
+
 
   ngOnInit(): void {
+    
   }
   public params: any;
 
   agInit(params: any): void {
     this.params = params;
-
+       
     // this.updateActiveState();
   }
+
+  
 
   save() {
     this.params.context.componentParent.saveRow(this.params.data);

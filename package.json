@@ -25,6 +25,9 @@
     "ag-grid-angular": "^27.3.0",
     "ag-grid-community": "^27.3.0",
     "ag-grid-enterprise": "^27.3.0",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
+    "ngx-spinner": "^9.0.0",
     "rxjs": "~6.5.4",
     "tslib": "^1.10.0",
     "zone.js": "~0.10.2"

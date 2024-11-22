@@ -232,7 +232,7 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
         ...this.params.node.data,
         [warningField]: this.warningMessage
       };
-      
+       
       // Update the entire row data
       this.params.node.setData(updatedData);
 

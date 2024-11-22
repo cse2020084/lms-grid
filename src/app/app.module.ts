@@ -13,6 +13,11 @@ import { SecondCustomComponent } from './component/second-custom/second-custom.c
 import { ClearableFloatingFilterComponent } from './component/clearable-floating-filter/clearable-floating-filter.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { LoadingComponent } from './component/loading/loading.component';
+import { ToasterComponent } from './toaster/toaster/toaster.component';
+
+
+
 
 @NgModule({
   declarations: [
@@ -21,6 +26,8 @@ import { MatIconModule } from '@angular/material/icon';
     CustomTextCellEditor,
     SecondCustomComponent,
     ClearableFloatingFilterComponent,
+    LoadingComponent,
+    ToasterComponent,
     
   ],
   imports: [
@@ -33,6 +40,7 @@ import { MatIconModule } from '@angular/material/icon';
     FormsModule,
     MatCardModule,
     MatIconModule,
+    
   ],
   providers: [],
   bootstrap: [AppComponent]
