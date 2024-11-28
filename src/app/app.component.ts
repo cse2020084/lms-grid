@@ -37,6 +37,7 @@ export class AppComponent implements OnInit {
   public gridApi!: GridApi;
   public gridColumnApi: any;
   public isCreatingNewRow: boolean = false; // Flag to track row creation state
+  public isCheckBoxDisplaying: boolean = true; // Flag to track row creation state
   public duplicateError: boolean = false; // Flag to track if a duplicate is found
 
   public duplicateMessage: string = ''; // Message for duplicate warning ,borderBottom: '2px solid #ccc'
@@ -51,7 +52,18 @@ export class AppComponent implements OnInit {
 
   public columnDefs: ColDef[] = [
     {
-      headerName: 'Country Name', field: 'entityBusinessName', sortable: true, editable: true, width: 250, checkboxSelection: true, headerCheckboxSelection: true,
+      field:'',
+      checkboxSelection: (params) => {
+        return this.isCheckBoxDisplaying;
+      },
+       headerCheckboxSelection: true,
+      width:50,
+      cellClassRules: {
+        'deactivated-row': (params) => params.data.activeFlag !== 1
+      },
+    },
+    {
+      headerName: 'Country Name', field: 'entityBusinessName', sortable: true, editable: true, width: 250, 
       filter: "agTextColumnFilter",
       floatingFilter: true,
       floatingFilterComponentParams: {
@@ -123,23 +135,21 @@ export class AppComponent implements OnInit {
 
     },
     {
-      headerName: 'Last Updated By', field: 'createdByUser', width: 230,
+      headerName: 'Last Updated By', field: 'createdByUser', width: 230,sortable: true,
       cellClassRules: {
         'deactivated-row': (params) => params.data.activeFlag !== 1
       },
     },
     {
-      headerName: 'Last Modified on', field: 'effectiveDateFrom', width: 330, filter: "agDateColumnFilter", sortable: true, cellClassRules: {
+      headerName: 'Last Modified on', field: 'effectiveDateFrom', width: 320, filter: "agDateColumnFilter", sortable: true, cellClassRules: {
         'deactivated-row': (params) =>
           params.data.activeFlag !== 1
-
-
-
       },
     },
 
     {
-      headerName: '',
+      headerName: 'Status',
+      sortable: true,
       cellRenderer: 'actionCellRenderer', // Uses custom cell renderer for actions
       width: 250,
       cellRendererParams: {
@@ -242,13 +252,14 @@ export class AppComponent implements OnInit {
    */
   addNewRow() {
     this.clickedOnCreateButton = true; // // to disable create button 
+    this.isCheckBoxDisplaying=false; // to disable checkbox
     const newItem = {
       entityBusinessName: '',
       entityBusinessShortCode: '',
       isNew: true,
       activeFlag: 1,
       rowClass: 'ag-temporary-row', // Apply a custom class for styling
-
+      forceEdit: true // Add a custom flag to force editing behavior
     };
 
     this.rowData.unshift(newItem);
@@ -299,6 +310,7 @@ export class AppComponent implements OnInit {
         item.isNew = false; // Mark row as saved
         console.log('Row saved successfully');
         this.isCreatingNewRow = false; // Reset the new row creation flag
+        this.isCheckBoxDisplaying=true;
         this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
         this.toasterService.showSuccess('Data saved successfully');
         this.loadData();
@@ -329,6 +341,7 @@ export class AppComponent implements OnInit {
    */
   cancelRow(item) {
     // Ensure any cell editing is stopped
+    this.isCheckBoxDisplaying=true;
     this.gridApi.stopEditing(true); // Ends edit mode for the entire grid
 
     const index = this.rowData.indexOf(item);
@@ -344,6 +357,7 @@ export class AppComponent implements OnInit {
     this.duplicateError = false; // Reset the duplicate error flag
     this.duplicateMessage = ''; // Clear duplicate message
     this.clickedOnCreateButton = false; // to enable create button again
+    this.isCheckBoxDisplaying=true;
     this.toasterService.showSuccess('Not added')
   }
 
@@ -512,7 +526,8 @@ export class AppComponent implements OnInit {
         return { background: '#c1b3b3' };
       }
       return null; // Default style for other rows
-    }
+    },
+    suppressRowClickSelection: true,
 
   };
 
@@ -576,6 +591,7 @@ export class AppComponent implements OnInit {
   /*-----------------*/
 
 }
+
 
 
 

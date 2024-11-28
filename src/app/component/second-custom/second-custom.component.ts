@@ -6,21 +6,40 @@ import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
   selector: 'app-second-custom',
   template: `
     <div class="editor-container" (mousedown)="onMouseDown($event)" (click)="onEditorClick($event)">
-      <input
-        #input
-        type="text"
-        [(ngModel)]="value"
-        (ngModelChange)="onValueChange()"
-        [class.has-error]="isDuplicate || isEmpty"
-        class="ag-input-field-input ag-text-field-input"
-        (keydown)="onKeyDown($event)"
-        (blur)="onBlur($event)"
-      />
+      <div class="input-button-container">
+        <input
+          #input
+          type="text"
+          [(ngModel)]="value"
+          (ngModelChange)="onValueChange($event)"
+          [ngClass]="{'has-error': isDuplicate || isEmpty}"
+          class="ag-input-field-input ag-text-field-input"
+          (keydown)="onKeyDown($event)"
+          (blur)="onBlur($event)"
+          (cellEditingStopped)="onCellEditingStopped($event)"
+        />
+        <div class="button-container" *ngIf="!isTemporaryRow">
+          <button 
+            class="editor-button save-button" 
+            [ngClass]="{'disabled': isDuplicate || isEmpty}"
+            (click)="onSaveClick($event)"
+            [disabled]="isDuplicate || isEmpty || this.params.context.componentParent.isCreatingNewRow"
+            type="button"
+          >✓</button>
+          <button 
+            class="editor-button cancel-button" 
+            (click)="onCancelClick($event)"
+            type="button"
+          >✗</button>
+        </div>
+      </div>
       <div 
         *ngIf="showWarning" 
         class="warning-message"
-        [class.duplicate-warning]="isDuplicate"
-        [class.empty-warning]="isEmpty"
+        [ngClass]="{
+          'duplicate-warning': isDuplicate,
+          'empty-warning': isEmpty
+        }"
       >
         {{ warningMessage }}
       </div>
@@ -30,13 +49,45 @@ import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
     .editor-container {
       position: relative;
       height: 100%;
+      padding: 2px;
+    }
+    .input-button-container {
+      display: flex;
+      align-items: center;
+      gap: 1vw;
+    }
+    .button-container {
+      display: flex; 
+      gap: 1vw;
+    }
+    .editor-button {
+      padding: 1px 4px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      background: white;
+      border-radius: 2px;
+      font-size: 12px;
+      min-width: 20px;
+      height: 5vh;
+      width: 2vw;
+      line-height: 1;
+    }
+    .save-button {
+      color: green;
+    }
+    .save-button.disabled {
+      color: #ccc;
+      cursor: not-allowed;
+    }
+    .cancel-button {
+      color: red;
     }
     .has-error {
       border: 1px solid red !important;
     }
     .warning-message {
       position: absolute;
-      bottom: -10px;
+      bottom: -9px;
       left: 0;
       font-size: 12px;
       padding: 2px 4px;
@@ -46,18 +97,20 @@ import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
     }
     .duplicate-warning {
       color: #d32f2f;
-      
     }
     .empty-warning {
       color: #f57c00;
-      
+    }
+    input {
+      flex: 1;
+      min-width: 0;
     }
   `]
 })
 export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewInit {
   @ViewChild('input') input!: ElementRef;
   
-  private params: ICellEditorParams;
+  public params: ICellEditorParams;
   private originalValue: any;
   public value: any;
   public isDuplicate: boolean = false;
@@ -65,31 +118,39 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
   public showWarning: boolean = false;
   public warningMessage: string = '';
   
-  private isEditing: boolean = false;
+  
   private isFirstClick: boolean = true;
+  private saveClicked: boolean = false;
+  private isEditing:boolean=false;
+  public isTemporaryRow: boolean = false;
   
   agInit(params: ICellEditorParams): void {
-    console.log('agInit called with params:', params);
     this.params = params;
     this.originalValue = params.value;
     this.value = params.value;
+    this.saveClicked = false;
+
     
-    // Initialize validation state
-    // Delay value change processing to allow params to initialize
-  window.setTimeout(() => {
-    this.validateField();
-  });
+    // Check if this is a temporary row
+    this.isTemporaryRow = params.node.data.isNew === true;
+
+
+    console.log(this.isTemporaryRow) 
+    setTimeout(() => {
+      this.validateField();
+    });
     
-    // Set editing started flag
-    window.setTimeout(() => {
+    setTimeout(() => {
       this.isEditing = true;
     }, 100);
   }
 
   ngAfterViewInit() {
-    window.setTimeout(() => {
-      this.input.nativeElement.focus();
-      this.input.nativeElement.select();
+    setTimeout(() => {
+      if (this.input && this.input.nativeElement) {
+        this.input.nativeElement.focus();
+        this.input.nativeElement.select();
+      }
     });
   }
 
@@ -105,17 +166,52 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
     this.isFirstClick = false;
   }
 
-  onValueChange(): void {
-
+  onValueChange(newValue: any): void {
+    this.value = newValue;
     if (!this.params) {
-      console.warn('onValueChange called before params were initialized');
       return;
     }
 
     this.checkDuplicates();
     this.validateField();
     this.updateWarningMessage();
-    this.updateGridData();
+  }
+
+  onSaveClick(event: MouseEvent): void {
+    event.stopPropagation();
+    if (!this.isEmpty && !this.isDuplicate) {
+      this.saveClicked = true;
+      this.validateField();
+      this.updateWarningMessage();
+
+      // Get the row data and update it immediately
+      const rowData = this.params.node.data;
+      const field = this.params.column.getColId();
+      rowData[field] = this.value.trim();
+
+      // Update the grid cell immediately
+      this.params.node.setDataValue(field, this.value.trim());
+
+      // Get reference to parent component
+      const parent = this.params.context.componentParent;
+      
+      // Call parent's editRow method with updated data
+      if (parent && parent.editRow) {
+        parent.editRow(rowData);
+      }
+      
+    
+
+      this.params.api.stopEditing();
+    }
+  }
+
+  onCancelClick(event: MouseEvent): void {
+    event.stopPropagation();
+    this.value = this.originalValue;
+    this.validateField();
+    this.updateWarningMessage();
+    this.params.api.stopEditing();
   }
 
   checkDuplicates(): void {
@@ -139,7 +235,14 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
   }
 
   getValue(): any {
-    return this.isEmpty ? this.originalValue : this.value.trim();
+    //return this.isTemporaryRow ? this.value.trim() : this.originalValue;  --1
+    //return this.value ? this.value.trim() : this.originalValue;           --2
+
+    // For temporary rows, return trimmed value
+    // For existing rows, return original or current value based on save status
+    return this.isTemporaryRow 
+      ? this.value.trim() 
+      : (this.saveClicked ? this.value.trim() : this.originalValue);    //   --3
   }
 
   isCancelBeforeStart(): boolean {
@@ -151,47 +254,65 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
   }
 
   onBlur(event: FocusEvent): void {
+
+    // For temporary rows, retain the current value
+    if (this.isTemporaryRow) {
+      if (!this.isDuplicate && !this.isEmpty) {
+        const field = this.params.column.getColId();
+        const rowData = this.params.node.data;
+        rowData[field] = this.value.trim();
+        this.params.node.setDataValue(field, this.value.trim());
+      }
+      return;
+    }
+
+    const relatedTarget = event.relatedTarget as HTMLElement;
+    
+   
+    
+    // For existing rows, keep the existing blur logic
+    if (relatedTarget?.classList.contains('save-button')) {
+      return;
+    }
+    
+    if (relatedTarget?.classList.contains('cancel-button')) {
+      return;
+    }
+    
+    this.value = this.originalValue;
     this.validateField();
     this.updateWarningMessage();
-    this.updateGridData();
-    
-    const relatedTarget = event.relatedTarget as HTMLElement;
-    if (!relatedTarget || !this.isTargetInGrid(relatedTarget)) {
-      if (!this.isEmpty && !this.isDuplicate) {
-        this.params.api.stopEditing();
-      }
+
+    if (this.params?.node && this.params?.column) {
+      const field = this.params.column.getColId();
+      const rowData = this.params.node.data;
+      rowData[field] = this.originalValue;
+
+      this.params.node.setDataValue(field, this.originalValue);
     }
+
+    this.params.api.stopEditing();
   }
+
+  
+  
 
   onKeyDown(event: KeyboardEvent): void {
     if (event.key === 'Enter') {
-      this.validateField();
-      this.updateWarningMessage();
-      
-      if (!this.isEmpty && !this.isDuplicate) {
-        this.params.api.stopEditing();
-      }
+      this.onSaveClick(new MouseEvent('click'));
       event.preventDefault();
     } else if (event.key === 'Escape') {
-      this.value = this.originalValue;
-      this.validateField();
-      this.updateWarningMessage();
-      this.params.api.stopEditing();
+      this.onCancelClick(new MouseEvent('click'));
       event.preventDefault();
     }
 
-
     if (
-      !event.key.match(/[a-zA-Z\s]/) && // Allow only letters and spaces
-      event.key !== 'Backspace' && // Allow Backspace
-      event.key !== 'Tab' // Allow Tab
+      !event.key.match(/[a-zA-Z\s]/) && 
+      event.key !== 'Backspace' && 
+      event.key !== 'Tab'
     ) {
-      event.preventDefault(); // Block invalid keypresses
+      event.preventDefault();
     }
-  }
-
-  private isTargetInGrid(element: HTMLElement): boolean {
-    return !!element?.closest('.ag-root-wrapper');
   }
 
   private validateField(): void {
@@ -209,50 +330,18 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
     }
   }
 
-  private updateGridData(): void {
-    try {
-      // Basic params validation
-      if (!this.params?.node || !this.params?.column) {
-        console.warn('Required grid parameters are not available');
-        return;
-      }
-
-      // Get the current column ID
-      const currentColId = this.params.column.getColId();
-      if (!currentColId) {
-        console.warn('Column ID is not available');
-        return;
-      }
-
-      // Get the warning field name
-      const warningField = `${currentColId}Warning`;
-
-      // Instead of using setDataValue, update the data directly
-      const updatedData = {
-        ...this.params.node.data,
-        [warningField]: this.warningMessage
-      };
-       
-      // Update the entire row data
-      this.params.node.setData(updatedData);
-
-      // Refresh the specific cells
-      if (this.params.api) {
-        this.params.api.refreshCells({
-          rowNodes: [this.params.node],
-          columns: [warningField],
-          force: true
-        });
-      }
-
-    } catch (error) {
-      console.error('Error in updateGridData:', {
-        error,
-        columnExists: !!this.params?.column,
-        nodeExists: !!this.params?.node,
-        currentValue: this.value,
-        warningMessage: this.warningMessage
-      });
+  onCellEditingStopped(event: any) {
+    const isCreatingNewRow = this.params.context.componentParent.isCreatingNewRow;
+    if (isCreatingNewRow) {
+      //this.onCancelClick(event); // Revert only if not creating a new row
+      return
     }
+    // if (event.key !== 'Enter') {
+    //   this.onCancelClick(event);
+    // }
+
+    
+
+  
   }
 }

@@ -16,7 +16,7 @@
     padding: 8px 12px;
     margin-bottom: 10px;
     font-size: 16px;
-    border-radius: 4px;
+    border-radius: 4px;  
     cursor: pointer;
     transition: background-color 0.3s ease;
   }
@@ -30,22 +30,31 @@
     cursor: not-allowed;
   }
 
-
+              
   // for pagination selector
   
 
   .above-grid-bar{
     display: flex;
     align-items: center;
-    width: 95vw;
+    width: 100%;
     justify-content: flex-end;
+    
 
     .pagination-number-selector {  
       // opacity: 0.7; /* Reduce opacity (0 = fully transparent, 1 = fully opaque) */
       font-size: 2rex; 
-      margin-right: 65vw;
+      margin-right: 60%;
       background: none;
       margin-bottom: 3vh;
+      
+      
+    }
+
+    .format-option-bar{
+      display: flex;
+    align-items: center;
+    justify-content: flex-end;
     }
   }
   
@@ -118,18 +127,18 @@
   }
   
   /* Responsive grid sizing */
-  @media (max-width: 768px) {
-    .ag-theme-alpine {
-      height: 500px;
+  // @media (max-width: 768px) {
+  //   .ag-theme-alpine {
+  //     height: 500px;
 
-      // overflow-x: scroll;
-    }
+  //     // overflow-x: scroll;
+  //   }
   
-    button {
-      font-size: 14px;
-      padding: 6px 10px;
-    }
-  }
+  //   button {
+  //     font-size: 14px;
+  //     padding: 6px 10px;
+  //   }
+  // }
 
   
 
