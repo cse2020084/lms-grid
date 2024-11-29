@@ -1,0 +1,238 @@
+/* Container styling */
+:host {
+    display: flex;
+     flex-direction: column;
+     align-items: center;
+     padding: 20px;
+     background-color: #f5f5f5;
+     min-width: 1200px;
+   }
+   
+   /* Button styling */
+   button {
+     background-color: #007bff;
+     color: white;
+     border: none;
+     padding: 8px 12px;
+     margin-bottom: 10px;
+     font-size: 16px;
+     border-radius: 4px;  
+     cursor: pointer;
+     transition: background-color 0.3s ease;
+   }
+   
+   button:hover {
+     background-color: #0056b3;
+   }
+   
+   button:disabled {
+     background-color: #c0c0c0;
+     cursor: not-allowed;
+   }
+ 
+               
+   // for pagination selector
+   
+ 
+   .above-grid-bar{
+     display: flex;
+     align-items: center;
+     width: 100%;
+     justify-content: flex-end;
+     
+ 
+     .pagination-number-selector {  
+       // opacity: 0.7; /* Reduce opacity (0 = fully transparent, 1 = fully opaque) */
+       font-size: 2rex; 
+       margin-right: 60%;
+       background: none;
+       margin-bottom: 3vh;
+       
+       
+     }
+ 
+     .format-option-bar{
+       display: flex;
+     align-items: center;
+     justify-content: flex-end;
+     }
+   }
+   
+   /* AG Grid styling */
+   .ag-theme-alpine {
+     
+     width: 100%;
+     height: 100%;
+     
+     max-width: 1000vh; //1000
+     border: 1px solid #e0e0e0;
+     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+     border-radius: 8px;
+     background-color: white;
+     overflow-x: auto; /* Enable horizontal scrolling */
+     // overflow-y: hidden; /* Prevent vertical scrolling unless necessary */
+     // white-space: nowrap; /* Prevent cell wrapping */
+ 
+     .pagination-number-selector {  
+       // opacity: 0.7; /* Reduce opacity (0 = fully transparent, 1 = fully opaque) */
+       font-size: 2rex; 
+       font-weight: bold;
+       margin-right: 60%;
+       background: none;
+       margin-bottom: 3vh;
+       
+       
+     }
+     
+   }
+   
+   /* Cell styling */
+   .ag-theme-alpine .ag-cell {
+     font-size: 14px;
+     color: #333;
+     line-height: 1.5;
+ 
+     // overflow: hidden; /* Prevent overflowing content */
+     // text-overflow: ellipsis; /* Add ellipsis for overflowing content */
+     // white-space: nowrap; /* Prevent wrapping of content */
+   }
+   
+   /* Header cell styling */
+   .ag-theme-alpine .ag-header-cell-label {
+     font-weight: bold;
+     color: #555;
+ 
+     
+   }
+   
+   /* Action buttons in cells */
+   .action-button {
+     background-color: transparent;
+     color: #007bff;
+     border: none;
+     font-size: 14px;
+     cursor: pointer;
+     padding: 4px 8px;
+     margin: 0 2px;
+     transition: color 0.3s ease;
+   }
+   
+   .action-button:hover {
+     color: #0056b3;
+   }
+   
+   .action-button.save {
+     color: #28a745;
+   }
+   
+   .action-button.save:hover {
+     color: #218838;
+   }
+   
+   .action-button.cancel {
+     color: #dc3545;
+   }
+   
+   .action-button.cancel:hover {
+     color: #c82333;
+   }
+   
+   /* Responsive grid sizing */
+   // @media (max-width: 768px) {
+   //   .ag-theme-alpine {
+   //     height: 500px;
+ 
+   //     // overflow-x: scroll;
+   //   }
+   
+   //   button {
+   //     font-size: 14px;
+   //     padding: 6px 10px;
+   //   }
+   // }
+ 
+   
+ 
+   
+   
+   .error-message {
+     color: red;
+     font-size: 14px;
+     
+   }
+ 
+ 
+ 
+   /* Add this to your  styles */
+   //rowClass: 'ag-temporary-row'  // Custom class added here in const newItem in ts and
+   //getRowClass: params => params.data?.rowClass || '', // Apply 'ag-temporary-row' if present in gridOptionin ts file
+ // .ag-temporary-row {
+ //   background-color: #f9f9f9;   // Optional background color for visibility
+ //   margin-bottom: 100px;         // Space between temporary row and the first row
+ //   padding: 8px 0;              // Padding within the row for better spacing
+ //   border-bottom: 1px solid #ddd; // Optional border to make it stand out
+ // }
+ 
+ 
+ 
+ // start for new
+ 
+ /* Style for the temporary row container */
+ .ag-temporary-row {
+   height: 80px !important; /* Increase row height */
+   background-color:  #f9f9f9; /* Light background for distinction */
+   
+   border-bottom: 2px solid #ddd; /* Separator line */
+   margin-bottom: 15px; /* Adds spacing to prevent overlap */
+   
+ }
+ 
+ /* Style cells within the temporary row for padding and spacing */
+  .ag-temporary-row .ag-cell {
+   padding: 12px; /* Adds padding around each cell */
+   
+ }
+ 
+ /* Adjust input fields in the temporary row */
+ .ag-temporary-row input {
+   width: 90%;
+   padding: 10px;
+   box-sizing: border-box;
+   font-size: 14px;
+   margin-bottom: 20px; 
+   
+ }
+ 
+ 
+ ///for deactivation of row
+ :host ::ng-deep .deactivated-row {
+   background-color: #f0f0f0 !important;
+   pointer-events: none; /* Disable interactions */
+   color: #a0a0a0 !important;
+ }
+ 
+ 
+ // for new cell renderer
+ 
+ /* Add to your component's styles or global styles */
+ :host ::ng-deep .ag-cell {
+   overflow: visible !important;
+ }
+ 
+ :host ::ng-deep .ag-row {
+   margin-bottom: 20px !important;
+   z-index: 0;
+ }
+ 
+ :host ::ng-deep .ag-cell:has(.warning-message) {
+   z-index: 2;
+ }
+ 
+ :host ::ng-deep .custom-cell-renderer {
+   position: relative;
+   height: 100%;
+ }
+ 
+  
+   
+   
