@@ -13,8 +13,8 @@ import { DataService } from 'src/app/services/data.service';
    <button  mat-button color="primary" (click)="cancel()">Cancel</button>
  </ng-container>
  <ng-template #defaultTemplate>
-  <!-- <button  mat-button (click)="edit()" [disabled]="params.data.activeFlag !== 1 || this.params.context.componentParent.isCreatingNewRow"><i class="bi bi-pencil-square" style="font-size:1.5rem"></i></button> -->
-   <button  mat-button (click)="status()" [ngClass]="{ active: params.data.activeFlag === 1 ,inActive:params.data.activeFlag !== 1}"  [disabled]="this.params.context.componentParent.isCreatingNewRow" > <mat-icon *ngIf="params.data.activeFlag === 1">block</mat-icon> <i *ngIf="params.data.activeFlag !==1" class="bi bi-check2-circle"></i></button>
+  <!-- <button  mat-button (click)="edit()" [disabled]="params.data.activeFlag !== 1 || this.params.context.compon Parent.isCreatingNewRow"><i class="bi bi-pencil-square" style="font-size:1.5rem"></i></button> -->
+   <button  mat-button (click)="status()" [ngClass]="{ active: params.data.activeFlag === 1 ,inActive:params.data.activeFlag !== 1}"  [disabled]="this.params.context.componentParent.isCreatingNewRow" > <i *ngIf="params.data.activeFlag ===1" class="bi bi-slash-circle-fill"></i> <i *ngIf="params.data.activeFlag !==1" class="bi bi-check2-circle"></i></button>
  </ng-template>
 `,
 styles: [`
@@ -23,8 +23,8 @@ styles: [`
     font-size:1.4rem;
   }
   .active {
-   color:red;
-   font-size:1rem;
+   color:rgb(211, 47, 47);
+   font-size:1.1rem;
    
   }
 `]
@@ -115,3 +115,4 @@ export class ActionComponent implements OnInit,ICellRendererAngularComp {
 
 
 // <i *ngIf="params.data.activeFlag === 1" class="bi bi-slash-circle-fill"></i>
+//  <mat-icon *ngIf="params.data.activeFlag === 1">block</mat-icon>

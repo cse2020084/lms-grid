@@ -3,7 +3,7 @@
 <app-toaster></app-toaster>
 
 <div class="above-grid-bar">
-  <div class="pagination-number-selector">
+  <!-- <div class="pagination-number-selector">
     Rows Number:
     <select (change)="onPageSizeChanged()" id="page-size">
       <option value="10" selected="">10</option>
@@ -11,7 +11,7 @@
       <option value="100">100</option>
       <option value="500">500</option>
     </select>
-  </div>
+  </div> -->
 
 <div class="format-option-bar">
   <label class="option" for="selectedOnly"><input id="selectedOnly" type="checkbox"  >Selected Rows Only</label>
@@ -35,7 +35,17 @@
     [paginationPageSize]="paginationPageSize" [paginationNumberFormatter]="paginationNumberFormatter"
     rowSelection="multiple" [singleClickEdit]="true" [context]="{ componentParent: this }" domLayout="autoHeight">
   </ag-grid-angular>
-  <div *ngIf="duplicateError" class="error-message">{{ duplicateMessage }}</div>
+ 
+
+  <div class="pagination-number-selector">
+    Rows Number:
+    <select (change)="onPageSizeChanged()" id="page-size">
+      <option value="10" selected="">10</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+      <option value="500">500</option>
+    </select>
+  </div>
 </div>
 
 

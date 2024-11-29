@@ -528,6 +528,8 @@ export class AppComponent implements OnInit {
       return null; // Default style for other rows
     },
     suppressRowClickSelection: true,
+    
+    
 
   };
 

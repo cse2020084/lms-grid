@@ -1,6 +1,7 @@
 import { ICellEditorAngularComp } from 'ag-grid-angular';
 import { ICellEditorParams } from 'ag-grid-community';
 import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { ToasterComponent } from 'src/app/toaster/toaster/toaster.component';
 
 @Component({
   selector: 'app-second-custom',
@@ -23,7 +24,7 @@ import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
             class="editor-button save-button" 
             [ngClass]="{'disabled': isDuplicate || isEmpty}"
             (click)="onSaveClick($event)"
-            [disabled]="isDuplicate || isEmpty || this.params.context.componentParent.isCreatingNewRow"
+            [disabled]="disableButton()"
             type="button"
           >✓</button>
           <button 
@@ -38,7 +39,8 @@ import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
         class="warning-message"
         [ngClass]="{
           'duplicate-warning': isDuplicate,
-          'empty-warning': isEmpty
+          'empty-warning': isEmpty,
+          'max-length':maxLength
         }"
       >
         {{ warningMessage }}
@@ -98,6 +100,9 @@ import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
     .duplicate-warning {
       color: #d32f2f;
     }
+    .max-length {
+      color: #d32f2f;
+    }
     .empty-warning {
       color: #f57c00;
     }
@@ -123,6 +128,7 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
   private saveClicked: boolean = false;
   private isEditing:boolean=false;
   public isTemporaryRow: boolean = false;
+  public maxLength:boolean=false;
   
   agInit(params: ICellEditorParams): void {
     this.params = params;
@@ -171,16 +177,34 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
     if (!this.params) {
       return;
     }
-
+    
+   
     this.checkDuplicates();
+    this.checkLength(newValue);
     this.validateField();
     this.updateWarningMessage();
+  }
+  checkLength(newValue) {
+    if(this.params.colDef.field === 'entityBusinessShortCode'){
+      if(newValue.length>=5){
+        this.maxLength=true;
+      }else{
+        this.maxLength=false;
+      }
+    }else{
+      if(newValue.length>=17){
+        this.maxLength=true;
+      }else{
+        this.maxLength=false;
+      }
+    }
   }
 
   onSaveClick(event: MouseEvent): void {
     event.stopPropagation();
     if (!this.isEmpty && !this.isDuplicate) {
       this.saveClicked = true;
+      this.maxLength=false;
       this.validateField();
       this.updateWarningMessage();
 
@@ -211,6 +235,7 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
     this.value = this.originalValue;
     this.validateField();
     this.updateWarningMessage();
+    this.maxLength=false;
     this.params.api.stopEditing();
   }
 
@@ -317,7 +342,7 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
 
   private validateField(): void {
     this.isEmpty = !this.value || this.value.trim() === '';
-    this.showWarning = this.isEmpty || this.isDuplicate;
+    this.showWarning = this.isEmpty || this.isDuplicate || this.maxLength;
   }
 
   private updateWarningMessage(): void {
@@ -325,7 +350,10 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
       this.warningMessage = 'This field cannot be empty';
     } else if (this.isDuplicate) {
       this.warningMessage = 'Duplicate value detected';
-    } else {
+    } else if(this.maxLength){
+      this.warningMessage = 'Max Length Reached';
+    }
+    else {
       this.warningMessage = '';
     }
   }
@@ -341,7 +369,17 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
     // }
 
     
+    /*
+    for disabling button
+    */
 
+    
   
   }
+
+  disableButton():boolean{
+    return this.isDuplicate || this.isEmpty || this.maxLength || this.params.context.componentParent.isCreatingNewRow
+  }
 }
+
+

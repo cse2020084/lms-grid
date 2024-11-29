@@ -14,6 +14,7 @@ import {
         [(ngModel)]="currentValue"
         (input)="onInput($event)"
         placeholder="Search..."
+        
       />
       <button *ngIf="currentValue" (click)="clearFilter()">✖</button>
     </div>
