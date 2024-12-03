@@ -15,19 +15,21 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { LoadingComponent } from './component/loading/loading.component';
 import { ToasterComponent } from './toaster/toaster/toaster.component';
-
+import { CustomCountryDropdownComponent } from './component/custom-country-dropdown/custom-country-dropdown.component';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 
 
 @NgModule({
   declarations: [
     AppComponent,
-    ActionComponent,
-    CustomTextCellEditor,
-    SecondCustomComponent,
-    ClearableFloatingFilterComponent,
+    // ActionComponent,
+    // CustomTextCellEditor,
+    // SecondCustomComponent,
+    // ClearableFloatingFilterComponent,
     LoadingComponent,
     ToasterComponent,
+    //CustomCountryDropdownComponent,
     
   ],
   imports: [
@@ -35,11 +37,12 @@ import { ToasterComponent } from './toaster/toaster/toaster.component';
     AppRoutingModule,
     BrowserAnimationsModule,
     HttpClientModule,
-    AgGridModule.withComponents([AppComponent]),
+    //AgGridModule.withComponents([]),
     MatButtonModule,
     FormsModule,
     MatCardModule,
     MatIconModule,
+    NgSelectModule,
     
   ],
   providers: [],

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { submenulist } from 'src/script/submenulist';
 
 @Component({
   selector: 'app-sub-menu',
@@ -19,6 +20,7 @@ export class SubMenuComponent implements OnInit {
   ) { }
 
   public ngOnInit(): void {
+    this.subMenuList=submenulist
     this.showImageCounter = setTimeout(() => {
       this.showImage = true;
     }, 500);
@@ -31,7 +33,10 @@ export class SubMenuComponent implements OnInit {
   }
 
   public onClickOfSpecificSubmenu(submenu) {
-    this.router.navigateByUrl('/' + submenu.url);
+    //this.router.navigateByUrl('/dashboard'+submenu.name);
+
+    // this.router.navigate(['/general', { name:submenu.name }]);
+    this.router.navigate(['/general/' + submenu.name.toLowerCase()]);
   }
 
 }

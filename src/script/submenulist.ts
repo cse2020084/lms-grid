@@ -4,7 +4,7 @@ interface submenulist {
     parentId: number
 }
 
-export const menulist: submenulist[] = [
+export const submenulist: submenulist[] = [
     {
         id: 1,
         name: 'country',

@@ -1,7 +1,8 @@
 import { ICellEditorAngularComp } from 'ag-grid-angular';
 import { ICellEditorParams } from 'ag-grid-community';
 import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
-import { ToasterComponent } from 'src/app/toaster/toaster/toaster.component';
+
+import { ToasterService } from 'src/app/toaster/toaster.service';
 
 @Component({
   selector: 'app-second-custom',
@@ -114,6 +115,8 @@ import { ToasterComponent } from 'src/app/toaster/toaster/toaster.component';
 })
 export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewInit {
   @ViewChild('input') input!: ElementRef;
+
+  constructor(private toaster:ToasterService){}
   
   public params: ICellEditorParams;
   private originalValue: any;
@@ -141,7 +144,7 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
     this.isTemporaryRow = params.node.data.isNew === true;
 
 
-    console.log(this.isTemporaryRow) 
+    console.log(this.isTemporaryRow, params) 
     setTimeout(() => {
       this.validateField();
     });
@@ -173,6 +176,7 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
   }
 
   onValueChange(newValue: any): void {
+
     this.value = newValue;
     if (!this.params) {
       return;
@@ -183,6 +187,13 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
     this.checkLength(newValue);
     this.validateField();
     this.updateWarningMessage();
+    this.validateWarnings(); // added
+
+    if(this.maxLength){
+      this.validateWarnings();
+      this.value='';
+      this.toaster.showError('Max Length Reached')
+    }
   }
   checkLength(newValue) {
     if(this.params.colDef.field === 'entityBusinessShortCode'){
@@ -202,6 +213,24 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
 
   onSaveClick(event: MouseEvent): void {
     event.stopPropagation();
+
+    // If maxLength is true for a temporary row, set the value to empty
+  if (this.maxLength) {
+    // this.value = '';
+    // this.isEmpty = true;
+    // this.validateField();
+    // this.updateWarningMessage();
+    
+    // // Update the grid cell to empty
+    // const field = this.params.column.getColId();
+    // const rowData = this.params.node.data;
+    // rowData[field] = '';
+    // this.params.node.setDataValue(field, '');
+    
+    // this.params.api.stopEditing();
+    return;
+  }
+
     if (!this.isEmpty && !this.isDuplicate) {
       this.saveClicked = true;
       this.maxLength=false;
@@ -278,24 +307,83 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
     return this.isDuplicate || this.isEmpty;
   }
 
-  onBlur(event: FocusEvent): void {
+  // onBlur(event: FocusEvent): void {
 
-    // For temporary rows, retain the current value
+  //   // For temporary rows, retain the current value
+  //   if (this.isTemporaryRow) {
+  //     if (!this.isDuplicate && !this.isEmpty) {
+  //       const field = this.params.column.getColId();
+  //       const rowData = this.params.node.data;
+  //       rowData[field] = this.value.trim();
+  //       this.params.node.setDataValue(field, this.value.trim());
+  //     }
+  //     return;
+  //   }
+
+  //   const relatedTarget = event.relatedTarget as HTMLElement;
+    
+   
+    
+  //   // For existing rows, keep the existing blur logic
+  //   if (relatedTarget?.classList.contains('save-button')) {
+  //     return;
+  //   }
+    
+  //   if (relatedTarget?.classList.contains('cancel-button')) {
+  //     return;
+  //   }
+    
+  //   this.value = this.originalValue;
+  //   this.validateField();
+  //   this.updateWarningMessage();
+
+  //   if (this.params?.node && this.params?.column) {
+  //     const field = this.params.column.getColId();
+  //     const rowData = this.params.node.data;
+  //     rowData[field] = this.originalValue;
+
+  //     this.params.node.setDataValue(field, this.originalValue);
+  //   }
+
+  //   this.params.api.stopEditing();
+  // }
+
+
+  /*----------*/
+
+  onBlur(event: FocusEvent): void {
+    const relatedTarget = event.relatedTarget as HTMLElement;
+    
+    // If it's a temporary/new row, keep the warnings visible
     if (this.isTemporaryRow) {
+      // Validate the field to ensure warnings are set correctly
+      this.validateField();
+      this.updateWarningMessage();
+      
+      // If there are no save/cancel buttons clicked, do not revert the value
+      if (relatedTarget?.classList.contains('save-button') || 
+          relatedTarget?.classList.contains('cancel-button')) {
+        return;
+      }
+      
+      // If there are validation errors, prevent stopping editing
+      if (this.isDuplicate || this.isEmpty || this.maxLength) {
+        event.preventDefault();
+        return;
+      }
+      
+      // For temporary rows, update the value if valid
       if (!this.isDuplicate && !this.isEmpty) {
         const field = this.params.column.getColId();
         const rowData = this.params.node.data;
         rowData[field] = this.value.trim();
         this.params.node.setDataValue(field, this.value.trim());
       }
+      
       return;
     }
-
-    const relatedTarget = event.relatedTarget as HTMLElement;
     
-   
-    
-    // For existing rows, keep the existing blur logic
+    // Existing row logic remains the same
     if (relatedTarget?.classList.contains('save-button')) {
       return;
     }
@@ -319,6 +407,27 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
     this.params.api.stopEditing();
   }
 
+ 
+
+  // Add method to ensure warnings are validated and shown
+  private validateWarnings(): void {
+    if (this.isTemporaryRow) {
+      this.validateField();
+      this.updateWarningMessage();
+      this.showWarning = this.isEmpty || this.isDuplicate || this.maxLength;
+    }
+  }
+
+
+  keepWarningsVisible(): void {
+    if (this.isTemporaryRow) {
+      this.validateWarnings();
+    }
+  }
+
+
+
+   /*----------*/
   
   
 

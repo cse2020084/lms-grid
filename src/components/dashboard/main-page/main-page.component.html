@@ -1,13 +1,8 @@
-<div class="row">
-    <div *ngFor="let menu of menuList" class="col-lg-2 col-md-4 col-6"
-        (click)="showImage ? onClickOfSpecificMenu(menu) : null">
-        <div class="lms-menu-block">
-            <!-- We have not url for dashboard tile so we are using order property to set image dynamically -->
-            <!-- <img class="lms-menu-image" src="/assets/svg/general-master.svg" /> -->
 
-            <!-- <img class="lms-menu-image" *ngIf="showImage" loading="lazy"
-                [src]="'/assets/svg/dashboard-images/block-icon/dashboard_' + menu.id + '.svg'" /> -->
-            <span class="lms-menu-name" *ngIf="showImage">{{menu.name}}</span>
-        </div>
+<div class="row lms-menu-block ">
+    <div *ngFor="let menu of menuList" class="col-lg-2 col-md-4 col-6 lms-menu-item" >
+        <button class="lms-menu-button" (click)="onClickOfSpecificMenu(menu)">{{menu.name}}</button>
+        
     </div>
+
 </div>

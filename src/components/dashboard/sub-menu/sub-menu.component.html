@@ -1,12 +1,6 @@
-<div class="row">
-    <div *ngFor="let submenu of subMenuList" class="col-lg-2 col-md-3 col-6"
-        (click)="showImage ? onClickOfSpecificSubmenu(submenu): null">
-        <div class="lms-submenu-block">
-            <!-- <img class="lms-submenu-image" [src]="'/assets/svg/general-master.svg'" /> -->
-
-            <!-- <img class="lms-submenu-image" loading="lazy" *ngIf="showImage"
-                [src]="'/assets/svg/tiles-icon/' + submenu.url + '.svg'" /> -->
-            <div class="lms-submenu-name" *ngIf="showImage">{{submenu.name}}</div>
-        </div>
+<div class="row lms-submenu-block">
+    <div *ngFor="let submenu of subMenuList" class="col-lg-2 col-md-4 col-6 lms-submenu-item" >
+        <button class="lms-submenu-button" (click)="onClickOfSpecificSubmenu(submenu)">{{submenu.name}}</button>
     </div>
+
 </div>

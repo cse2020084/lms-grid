@@ -1,17 +1,11 @@
 
+<router-outlet></router-outlet>
+
 <app-loading *ngIf="loading$ | async"></app-loading>
 <app-toaster></app-toaster>
 
-<div class="above-grid-bar">
-  <!-- <div class="pagination-number-selector">
-    Rows Number:
-    <select (change)="onPageSizeChanged()" id="page-size">
-      <option value="10" selected="">10</option>
-      <option value="50">50</option>
-      <option value="100">100</option>
-      <option value="500">500</option>
-    </select>
-  </div> -->
+ <!-- <div class="above-grid-bar">
+  
 
 <div class="format-option-bar">
   <label class="option" for="selectedOnly"><input id="selectedOnly" type="checkbox"  >Selected Rows Only</label>
@@ -27,7 +21,9 @@
 </div>
 </div>
 
-<div class="ag-theme-alpine ag-container">
+
+
+ <div class="ag-theme-alpine ag-container">
 
   <ag-grid-angular id="myGrid" style="width: 100%; height: 100%; " class="ag-theme-alpine" [rowData]="rowData "
     [columnDefs]="columnDefs" [defaultColDef]="defaultColDef" [frameworkComponents]="frameworkComponents"
@@ -46,7 +42,9 @@
       <option value="500">500</option>
     </select>
   </div>
-</div>
+</div>   -->
+
+
 
 
 <!-- (cellValueChanged)="onCellValueChanged($event)" -->
