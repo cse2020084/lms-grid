@@ -266,4 +266,25 @@ export class CustomCountryDropdownComponent implements ICellEditorAngularComp {
        }
       }
   }
+
+
+  private warningMessage: string = '';
+
+  private validateSelection(): void {
+    // Your validation logic
+    if (!this.selectedValue) {
+      this.warningMessage = 'Please select a country';
+    } else {
+      this.warningMessage = '';
+    }
+
+    // Update parent component with column-specific warning
+    if (this.params?.context?.componentParent?.updateColumnWarning) {
+      const columnField = this.params.column.getColId();
+      this.params.context.componentParent.updateColumnWarning(
+        columnField, 
+        this.warningMessage
+      );
+    }
+  }
 }

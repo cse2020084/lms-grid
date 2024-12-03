@@ -37,6 +37,18 @@ export class StateComponent implements OnInit {
      this.getCountry()
   }
 
+  // Object to store warning messages for different columns
+  public columnWarnings = {
+    entityBusinessName: '',             // for State Name column (SecondCustom)
+    entityBusinessShortCode:'' ,   // for State short code column (SecondCustom)
+    entityParentBusinessName: ''               // for Country column (CustomDropdown)
+  };
+
+  // Method to update warning for a specific column
+  updateColumnWarning(columnField: string, warning: string) {
+    this.columnWarnings[columnField] = warning;
+  }
+
 
 
   public columnDefs:ColDef[]=[
@@ -72,7 +84,7 @@ export class StateComponent implements OnInit {
       },
       cellRenderer: params => {
         if (params.data.isNew) {
-          const warning = params.data[`${params.colDef.field}Warning`];
+          const warning = this.columnWarnings.entityParentBusinessName;
           return `
           <div class="custom-cell-renderer" ;>
             <input 
@@ -80,9 +92,7 @@ export class StateComponent implements OnInit {
               placeholder="Choose Country"
               style="width: calc(100% - 20px); padding: 8px; font-size: 14px;}"
             />
-            <div class="duplicate-warning" style="color: red; font-size: 12px;">
-            ${warning || ''}
-            </div>
+             ${warning ? `<div class="warning-message">${warning}</div>` : ''}
             
           </div>
         `;
@@ -98,10 +108,10 @@ export class StateComponent implements OnInit {
         suppressFilterButton: true, // Removes the default filter button
       },
       floatingFilterComponentFramework: ClearableFloatingFilterComponent,
-
+      cellEditor: 'customTextCellEditor',
       cellRenderer: params => {
         if (params.data.isNew) {
-          const warning = params.data[`${params.colDef.field}Warning`];
+          const warning = this.columnWarnings.entityBusinessName;;
           return `
           <div class="custom-cell-renderer" ;>
             <input 
@@ -109,9 +119,7 @@ export class StateComponent implements OnInit {
               placeholder="Enter State"
               style="width: calc(100% - 20px); padding: 8px; font-size: 14px;}"
             />
-            <div class="duplicate-warning" style="color: red; font-size: 12px;">
-            ${warning || ''}
-            </div>
+             ${warning ? `<div class="warning-message" style="color: red;">${warning}</div>` : ''}
           </div>
         `;
         }
@@ -121,8 +129,8 @@ export class StateComponent implements OnInit {
 
         'deactivated-row': (params) => params.data.activeFlag !== 1
 
-      },
-      cellEditor: 'customTextCellEditor',
+      }
+      
 
     },
     
@@ -135,27 +143,22 @@ export class StateComponent implements OnInit {
         suppressFilterButton: true, // Removes the default filter button
       },
       floatingFilterComponentFramework: ClearableFloatingFilterComponent,
-
+      cellEditor: 'customTextCellEditor',
       cellRenderer: params => {
         if (params.data.isNew) {
+          const warning = this.columnWarnings.entityBusinessShortCode;
           return `
-          <div class="custom-cell-renderer">
+          <div class="custom-cell-renderer" ;>
             <input 
               value="${params.value || ''}"
               placeholder="Enter Abbreviation"
-              style="width: calc(100% - 20px); padding: 8px; font-size: 14px;"
+              style="width: calc(100% - 20px); padding: 8px; font-size: 14px;}"
             />
-            <div class="duplicate-warning" style="color: red; font-size: 12px;">
-            <!--  ${params.context.componentParent.duplicateMessage}-->
-            </div>
+             ${warning ? `<div class="warning-message" style="color: red;">${warning}</div>` : ''}
           </div>
         `;
         }
         return params.value;
-      },
-      cellEditor: 'customTextCellEditor',
-      cellEditorParams: {
-        placeholder: 'Enter Abbreviation'
       },
       cellClassRules: {
         'deactivated-row': (params) => params.data.activeFlag !== 1

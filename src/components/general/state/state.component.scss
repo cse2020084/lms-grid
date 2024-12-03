@@ -234,5 +234,19 @@
  }
  
   
+//for warning message
+ .warning-message {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+  position: absolute;
+  left: 0;
+  bottom: -20px;
+}
+
+.custom-cell-renderer {
+  position: relative;
+  width: 100%;
+}
    
    

@@ -14,7 +14,7 @@ import { DataService } from 'src/app/services/data.service';
  </ng-container>
  <ng-template #defaultTemplate>
   <!-- <button  mat-button (click)="edit()" [disabled]="params.data.activeFlag !== 1 || this.params.context.compon Parent.isCreatingNewRow"><i class="bi bi-pencil-square" style="font-size:1.5rem"></i></button> -->
-   <button  mat-button (click)="status()" [ngClass]="{ active: params.data.activeFlag === 1 ,inActive:params.data.activeFlag !== 1}"  [disabled]="this.params.context.componentParent.isCreatingNewRow" > <i *ngIf="params.data.activeFlag ===1" class="bi bi-slash-circle-fill"></i> <i *ngIf="params.data.activeFlag !==1" class="bi bi-check2-circle"></i></button>
+   <button  mat-button (click)="status()" [ngClass]="{ active: params.data.activeFlag === 1 ,inActive:params.data.activeFlag !== 1}"  [disabled]="this.params.context.componentParent.isCreatingNewRow" > <i *ngIf="params.data.activeFlag ===1" class="bi bi-slash-circle-fill"></i> <i *ngIf="params.data.activeFlag !==1" class="bi bi-check-circle-fill"></i></button>
  </ng-template>
 `,
 styles: [`

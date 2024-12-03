@@ -48,6 +48,18 @@ export class CountryComponent implements OnInit {
   public isActive: boolean = true;
 
 
+  // Object to store warning messages for different columns
+  public columnWarnings = {
+    entityBusinessName: '',             // for State Name column (SecondCustom)
+    entityBusinessShortCode:'' ,   // for State short code column (SecondCustom)
+   
+  };
+
+  // Method to update warning for a specific column
+  updateColumnWarning(columnField: string, warning: string) {
+    this.columnWarnings[columnField] = warning;
+  }
+
 
 
 
@@ -71,10 +83,10 @@ export class CountryComponent implements OnInit {
         suppressFilterButton: true, // Removes the default filter button
       },
       floatingFilterComponentFramework: ClearableFloatingFilterComponent,
-
+      cellEditor: 'customTextCellEditor',
       cellRenderer: params => {
         if (params.data.isNew) {
-          const warning = params.data[`${params.colDef.field}Warning`];
+          const warning = this.columnWarnings.entityBusinessName;;
           return `
           <div class="custom-cell-renderer" ;>
             <input 
@@ -82,9 +94,7 @@ export class CountryComponent implements OnInit {
               placeholder="Enter Country"
               style="width: calc(100% - 20px); padding: 8px; font-size: 14px;}"
             />
-            <div class="duplicate-warning" style="color: red; font-size: 12px;">
-            ${warning || ''}
-            </div>
+             ${warning ? `<div class="warning-message" style="color: red;">${warning}</div>` : ''}
           </div>
         `;
         }
@@ -95,7 +105,7 @@ export class CountryComponent implements OnInit {
         'deactivated-row': (params) => params.data.activeFlag !== 1
 
       },
-      cellEditor: 'customTextCellEditor',
+      
 
     },
     {
@@ -107,28 +117,25 @@ export class CountryComponent implements OnInit {
         suppressFilterButton: true, // Removes the default filter button
       },
       floatingFilterComponentFramework: ClearableFloatingFilterComponent,
-
+      cellEditor: 'customTextCellEditor',
       cellRenderer: params => {
         if (params.data.isNew) {
+          const warning = this.columnWarnings.entityBusinessShortCode;
           return `
-          <div class="custom-cell-renderer">
+          <div class="custom-cell-renderer" ;>
             <input 
               value="${params.value || ''}"
               placeholder="Enter Abbreviation"
-              style="width: calc(100% - 20px); padding: 8px; font-size: 14px;"
+              style="width: calc(100% - 20px); padding: 8px; font-size: 14px;}"
             />
-            <div class="duplicate-warning" style="color: red; font-size: 12px;">
-            ${params.context.componentParent.duplicateMessage}
-            </div>
+             ${warning ? `<div class="warning-message" style="color: red;">${warning}</div>` : ''}
           </div>
         `;
         }
         return params.value;
       },
-      cellEditor: 'customTextCellEditor',
-      cellEditorParams: {
-        placeholder: 'Enter Abbreviation'
-      },
+      
+      
       cellClassRules: {
         'deactivated-row': (params) => params.data.activeFlag !== 1
       },

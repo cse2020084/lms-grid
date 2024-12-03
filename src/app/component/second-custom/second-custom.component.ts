@@ -132,6 +132,8 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
   private isEditing:boolean=false;
   public isTemporaryRow: boolean = false;
   public maxLength:boolean=false;
+
+  
   
   agInit(params: ICellEditorParams): void {
     this.params = params;
@@ -464,6 +466,15 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
     }
     else {
       this.warningMessage = '';
+    }
+
+    // Update parent component with column-specific warning
+    if (this.params?.context?.componentParent?.updateColumnWarning) {
+      const columnField = this.params.column.getColId();
+      this.params.context.componentParent.updateColumnWarning(
+        columnField, 
+        this.warningMessage
+      );
     }
   }
 
