@@ -1,3 +1,9 @@
+<div class="breadcrumb-wrapper">
+<div >
+    <app-breadcrumb [childLink]="subMenuName"></app-breadcrumb>
+</div>
+</div>
+
 <div class="row lms-submenu-block">
     <div *ngFor="let submenu of subMenuList" class="col-lg-2 col-md-4 col-6 lms-submenu-item" >
         <button class="lms-submenu-button" (click)="onClickOfSpecificSubmenu(submenu)">{{submenu.name}}</button>

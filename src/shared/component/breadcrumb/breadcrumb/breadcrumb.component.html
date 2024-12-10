@@ -1,0 +1,21 @@
+<div class="breadcrumb-container">
+
+    <div aria-label="lms-dashboard" class="lms-dashboard-icon"><i class="bi bi-house-door"></i></div>
+    <span class="breadcrumb-link" (click)="navigateRoute(0)">
+        {{parentLink}}
+    </span>
+    <span class="breadcrumb-separator" *ngIf="childLink.length > 0"> &gt;
+    </span>
+
+    <span class="breadcrumb-link" (click)="navigateRoute(1)">
+        {{childLink}}
+    </span>
+
+    <span class="breadcrumb-separator" *ngIf="subchildLink.length > 0"> &gt;
+    </span>
+
+    <span class="breadcrumb-link">
+        {{subchildLink}}
+    </span>
+
+</div>

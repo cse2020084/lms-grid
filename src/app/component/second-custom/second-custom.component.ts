@@ -4,6 +4,15 @@ import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 
 import { ToasterService } from 'src/app/toaster/toaster.service';
 
+
+// Extend the ICellEditorParams interface to include your custom metadata
+interface CustomCellEditorParams extends ICellEditorParams {
+  metadata?: {
+    parentField?: string[];
+    // Add any other metadata properties you might need
+  };
+}
+
 @Component({
   selector: 'app-second-custom',
   template: `
@@ -118,11 +127,11 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
 
   constructor(private toaster:ToasterService){}
   
-  public params: ICellEditorParams;
+  public params: CustomCellEditorParams;
   private originalValue: any;
   public value: any;
   public isDuplicate: boolean = false;
-  public isEmpty: boolean = false;
+  public isEmpty: boolean = true;
   public showWarning: boolean = false;
   public warningMessage: string = '';
   
@@ -135,18 +144,19 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
 
   
   
-  agInit(params: ICellEditorParams): void {
+  agInit(params: CustomCellEditorParams): void {
     this.params = params;
     this.originalValue = params.value;
-    this.value = params.value;
+    this.value = params.value? params.value:'';
     this.saveClicked = false;
-
+    
+    
     
     // Check if this is a temporary row
     this.isTemporaryRow = params.node.data.isNew === true;
 
 
-    console.log(this.isTemporaryRow, params) 
+    console.log(this.isTemporaryRow, this.params) 
     setTimeout(() => {
       this.validateField();
     });
@@ -154,6 +164,49 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
     setTimeout(() => {
       this.isEditing = true;
     }, 100);
+
+
+    if(this.isTemporaryRow){
+      // Update parent component with column-specific warning
+      if (this.params?.context?.componentParent?.updateColumnWarning) {
+        const columnField = this.params.column.getColId();
+        this.params.context.componentParent.updateColumnWarning(
+          columnField, 
+          'Please Enter Some Data'
+        );
+      }
+      params.value===''
+  }
+ 
+  if(this.isTemporaryRow){
+     // Get the current column field
+  const currentColumnField = params.column.getColId();
+
+  // Check if the current column is NOT in the parent fields list
+  const parentFields = params.metadata?.parentField || [];
+  const isNotParentField = !parentFields.includes(currentColumnField);
+
+  if (isNotParentField) {
+    // Check if any of the parent fields are empty
+    const hasEmptyParentFields = parentFields.some(field => {
+      const value = params.data[field];
+      return value === null || value === undefined || value === '';
+    });
+
+    if (hasEmptyParentFields) {
+      // Handle the case when parent fields are empty
+      // For example, show an error, prevent editing, etc.
+      this.toaster.showError('First fill all the Dependent cells')
+      params.stopEditing(true);
+      console.warn('Parent fields cannot be empty');
+      
+      // Optional: You can add more specific handling
+      // For instance, preventing the cell from being edited
+      // params.stopEditing(true);
+    }
+  }
+  }
+    
   }
 
   ngAfterViewInit() {
@@ -270,23 +323,78 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
     this.params.api.stopEditing();
   }
 
+  // checkDuplicates(): void {
+  //   if (!this.value || this.value.trim() === '') {
+  //     this.isDuplicate = false;
+  //     return;
+  //   }
+
+  //   const columnId = this.params.column.getColId();
+  //   const rowIndex = this.params.rowIndex;
+  //   const allNodes: any[] = [];
+    
+  //   this.params.api.forEachNode(node => allNodes.push(node));
+    
+  //   this.isDuplicate = allNodes.some((node, index) => {
+  //     const cellValue = node.data[columnId];
+  //     const duplicate =cellValue.toString().toLowerCase().trim() === this.value.toString().toLowerCase().trim();
+  //     /// for checking if data is duplicate with their dependent column
+  //     if(index !== rowIndex && duplicate && this.params.data.parentField){
+  //       console.log('hi')
+  //       this.params.data.parentField.forEach((parent)=>{
+  //         const parentColumnValue=node.data[parent].toString().toLowerCase().trim()
+  //         if(index !== rowIndex && parentColumnValue===this.params.data[parent]){
+  //           console.log("yes, its true")
+  //         }
+  //       })
+  //     }
+  //     return index !== rowIndex && 
+  //            cellValue && duplicate
+             
+  //   });
+  // }
+
+
   checkDuplicates(): void {
     if (!this.value || this.value.trim() === '') {
       this.isDuplicate = false;
       return;
     }
-
+  
     const columnId = this.params.column.getColId();
     const rowIndex = this.params.rowIndex;
     const allNodes: any[] = [];
     
     this.params.api.forEachNode(node => allNodes.push(node));
     
+    // Get the metadata (parent fields) for the current row
+    const currentRowMetadata = this.params.metadata?.parentField || [];
+    
     this.isDuplicate = allNodes.some((node, index) => {
+      // Check if the cell values are duplicate
       const cellValue = node.data[columnId];
-      return index !== rowIndex && 
-             cellValue && 
-             cellValue.toString().toLowerCase().trim() === this.value.toString().toLowerCase().trim();
+      const isDuplicateValue = cellValue.toString().toLowerCase().trim() === 
+                                this.value.toString().toLowerCase().trim();
+      
+      // If values are duplicate, check parent fields
+      if (index !== rowIndex && isDuplicateValue) {
+        // If no parent fields are specified, return true for duplicate
+        if (!currentRowMetadata || currentRowMetadata.length === 0) {
+          return true;
+        }
+        
+        // Check if parent field values match
+        const isParentMatch = currentRowMetadata.every(parentField => {
+          const currentRowParentValue = this.params.data[parentField]?.toString().toLowerCase().trim();
+          const nodeParentValue = node.data[parentField]?.toString().toLowerCase().trim();
+          
+          return currentRowParentValue === nodeParentValue;
+        });
+        
+        return isParentMatch;
+      }
+      
+      return false;
     });
   }
 
@@ -417,6 +525,8 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
       this.validateField();
       this.updateWarningMessage();
       this.showWarning = this.isEmpty || this.isDuplicate || this.maxLength;
+
+     
     }
   }
 
@@ -452,7 +562,7 @@ export class SecondCustomComponent implements ICellEditorAngularComp, AfterViewI
   }
 
   private validateField(): void {
-    this.isEmpty = !this.value || this.value.trim() === '';
+    this.isEmpty = (!this.value || this.value.trim() === '') && this.isEditing;
     this.showWarning = this.isEmpty || this.isDuplicate || this.maxLength;
   }
 

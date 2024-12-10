@@ -9,6 +9,9 @@ import 'ag-grid-enterprise';
 //import { generatePDF } from '../script/jspdf'
 import { LoaderService } from 'src/app/services/loader.service';
 import { ToasterService } from 'src/app/toaster/toaster.service';
+import { StateService } from 'src/components/services/state.service';
+import { ActivatedRoute } from '@angular/router';
+import { BehaviorSubject, Subscription } from 'rxjs';
 
 
 
@@ -21,14 +24,21 @@ import { ToasterService } from 'src/app/toaster/toaster.service';
 })
 export class CountryComponent implements OnInit {
 
-
+  public stateCountries: any[] = [];
+  public currentColumnDefs: ColDef[];
+  public countryList$: BehaviorSubject<Array<any>> = new BehaviorSubject([]);
+  countryListSubscription: Subscription;
   constructor(
     private dataService: DataService,
     // private authService: AuthService,
     private cdr: ChangeDetectorRef,
     private loader:LoaderService,
     private toasterService: ToasterService,
-  ) { }
+    private stateService:StateService,
+    private route: ActivatedRoute,
+  ) {
+     
+   }
 
 
 
@@ -46,6 +56,8 @@ export class CountryComponent implements OnInit {
   public eventDataWarning = false;
 
   public isActive: boolean = true;
+  public editableColumns:any[]=[]; // for removing wrng msg on cancellation
+  public logView:boolean=false;
 
 
   // Object to store warning messages for different columns
@@ -172,11 +184,13 @@ export class CountryComponent implements OnInit {
 
 
 
+
   // Default column settings for AG Grid
   public defaultColDef = {
     //flex: 1,
     resizable: true,
     paginationPageSizeSelector: [8, 10, 20],
+    columnDefs:this.columnDefs
 
   };
   // Register framework components, such as custom cell renderers
@@ -187,50 +201,167 @@ export class CountryComponent implements OnInit {
   };
 
 
+  
+
+
+private sub:Subscription
   ngOnInit() {
     //this.loadData()
+    this.editableColumns.push('entityBusinessShortCode','entityBusinessName');
+    this.currentColumnDefs = this.columnDefs
+ 
+    // this.loadData().then((records: any) => {
+    //   this.countryList$.next(records);
+    // }).catch(error => {
+    //   this.countryList$.next([]);
+    // });
+
+    // // Access resolved data
+    // this.stateCountries = this.route.snapshot.data['countries'];
+    // console.log('CountryComponent: Resolved countries:', this.stateCountries);
+
+    // Additionally, log for debugging purposes
+    // if (!this.stateCountries || this.stateCountries.length === 0) {
+    //   console.log('CountryComponent: No countries were resolved. Waiting for updates...');
+    // };
+  
+    console.log(this.stateService.countriesSubject.getValue())
+
+    
+      this.stateService.countries$.subscribe((countries) => {
+        console.log('Reactive countries:', countries);
+        this.stateCountries = countries;
+      });
+     // 4000ms delay
+    
+    console.log('sub',this.sub)
+    // Check if data is already available
+    const existingData = this.stateService.getCurrentStateData();
+    if (existingData) {
+      this.stateCountries = existingData;
+      console.log('existing countries:', existingData);
+    }
+  
+    // const countries = this.state.getCountries();
+    // console.log('Synchronous countries:', countries);
+    // this.stateCountries = countries;
+  
+
+    
+
   }
 
-  /**
-   * Retrieves data from the server and loads it into the grid.
-   */
-  loadData() {
-
-    const payload = {
-      genericRequestEntity: {
-        companyID: 1,
-        createdBy: 1,
-        mode: 'W',
-        detailFlag: false,
-        dropDown: false
-
-      }
-    };
-    this.loader.showSpinner('Loading data...');
-    this.dataService.retrieveData('countryservice/getAllCountry', payload)
-      .subscribe(
-        (records: any) => {
-
-          // Check if the API call was successful
-          if (records.statusCode === "200" || records.statusCode === "300") {
-            // Update rowData with the data received from the server
-            this.rowData = records.responseList || [];
-            this.gridApi.setRowData(this.rowData); // Update the grid with new data
-            this.toasterService.showSuccess('Data loaded successfully');
-          } else {
-            console.error('Error:', records.errorMessage);
-            this.toasterService.showError('Failed to load data');
-          }
-          this.loader.hideSpinner();
-        },
-        error => {
-          this.loader.hideSpinner();
-          this.toasterService.showError('Network error occurred');
-          console.error('Network or server issue:', error);
-        }
-      );
-
+  ngOnDestroy() {
+    if (this.countryListSubscription) {
+      this.countryListSubscription.unsubscribe();
+    }
   }
+
+  /***********/
+  //showlog
+
+
+  public logDefs:ColDef[]=[
+    {headerName: 'Country Name', field: 'entityBusinessName'},
+    {headerName: 'Abbreviation', field: 'entityBusinessShortCode'},
+    {headerName: 'Last Updated By', field: 'createdByUser',flex:1.5,},
+    {headerName: 'Last Modified on', field: 'effectiveDateFrom',},
+    {headerName: 'Audit Action', field: 'auditAction',}
+  ];
+
+  toggleColumnDefs(){
+    if (this.currentColumnDefs === this.columnDefs) {
+      this.currentColumnDefs = this.logDefs;
+      this.logView=true;
+    } else {
+      
+      this.currentColumnDefs = this.columnDefs;
+      this.logView=false;
+      
+    }
+
+    
+    // Optional: If you want to force grid to refresh
+    if (this.gridApi) {
+      this.gridApi.setColumnDefs(this.currentColumnDefs);
+      
+
+      
+    }
+   
+  }
+
+ 
+
+  showLog(toggleFlag) {
+    this.toggleColumnDefs();
+    this.countryList$.next([]);
+    console.log('countryList', this.countryList$);
+
+    if (toggleFlag) {
+        this.loadData(true)
+            .then((records: any) => {
+                this.countryList$.next(records);
+                console.log('countryList', this.countryList$);
+            })
+            .catch(error => {
+                this.countryList$.next([]);
+                console.log('error', error);
+            });
+    }else{
+      this.countryList$.next([]);
+      this.loadData(false)
+    }
+  
+}
+
+
+
+  /*******END*******/
+
+  
+
+
+    /****  new load data */ 
+
+
+    loadData(auditFlag:boolean) {
+      return new Promise((resolve, reject) => {
+          const payload = {
+              genericRequestEntity: {
+                  companyID: 1,
+                  createdBy: 1,
+                  mode: 'W',
+                  detailFlag: auditFlag,
+                  dropDown: false
+              }
+          };
+          this.loader.showSpinner('Loading data...');
+          this.countryListSubscription = this.dataService.retrieveData('countryservice/getAllCountry', payload)
+              .subscribe(
+                  (records: any) => {
+                      this.loader.hideSpinner();
+                      if (records.statusCode === "200" || records.statusCode === "300") {
+                          this.rowData = records.responseList || [];
+                          this.gridApi.setRowData(this.rowData);
+                          this.toasterService.showSuccess('Data loaded successfully');
+                          resolve(records.responseList); // Resolve with the actual data
+                      } else {
+                          console.error('Error:', records.errorMessage);
+                          this.toasterService.showError('Failed to load data');
+                          reject(records.errorMessage); // Reject with error message
+                      }
+                  },
+                  error => {
+                      this.loader.hideSpinner();
+                      this.toasterService.showError('Network error occurred');
+                      console.error('Network or server issue:', error);
+                      reject(error); // Reject with the error
+                  }
+              );
+      });
+  }
+    /**8 */
 
   /**
   * Initializes grid API and loads data after the grid is ready.
@@ -245,7 +376,7 @@ export class CountryComponent implements OnInit {
 
     // Load data into grid once it's fully initialized
 
-    this.loadData(); // Assuming loadData is asynchronous
+    this.loadData(false); // Assuming loadData is asynchronous
 
 
   }
@@ -321,12 +452,12 @@ export class CountryComponent implements OnInit {
         this.isCheckBoxDisplaying=true;
         this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
         this.toasterService.showSuccess('Data saved successfully');
-        this.loadData();
+        this.loadData(false);
       },
       error => {
         console.error('Error saving row:', error);
         this.toasterService.showError('Not saved')
-      }
+      } 
     ).catch((errorMessage) => {
       console.log('error ..')
       this.toasterService.showError('Not saved')
@@ -367,7 +498,12 @@ export class CountryComponent implements OnInit {
     this.clickedOnCreateButton = false; // to enable create button again
     this.isCheckBoxDisplaying=true;
     this.toasterService.showSuccess('Not added')
+
+    this.editableColumns.forEach(country=>{
+      this.updateColumnWarning(country,'');
+     })
   }
+
 
 
   // for editing the row
@@ -462,6 +598,26 @@ export class CountryComponent implements OnInit {
 
 
   deactivateRow(item) {
+    
+    const countries = this.stateCountries;
+    
+    // if (this.stateCountries.includes(item.entityBusinessName)) {
+    //   this.toasterService.showError(
+    //     `${item.entityBusinessName} is already present in the State table and cannot be deactivated.`
+    //   );
+    //   return;
+    // }
+
+    console.log(`Deactivating country:`,countries);
+  
+
+      
+      
+    
+    
+      
+    
+
     const payload = {
       genericManipulationRequestEntity: {
         entityID: item.entityID,
@@ -487,6 +643,9 @@ export class CountryComponent implements OnInit {
         this.cdr.detectChanges(); // Ensure Angular detects the changes
         this.loader.hideSpinner();
         this.toasterService.showSuccess('Data is now Deactivated')
+
+
+
       },
       (error) => {
         console.log('deactivation error', error)
@@ -525,13 +684,26 @@ export class CountryComponent implements OnInit {
       return params.data && params.data.isNew ? 'ag-temporary-row' : ''; // Apply temporary row class
     },
     getRowHeight: params => {
+      if(this.logView){
+        return  40
+      }
       return params.data.isNew ? 100 : 50; // Set 80px for temporary row, 40px for normal rows
     },
 
     getRowStyle: params => {
+       // Check if logView is true
+    if (this.logView) {
+      // Apply different background color for odd rows
+      if (params.node.rowIndex % 2 !== 0) {
+        return { background: '#f0f0f0' }; // Example: Light gray for odd rows
+      }
+      return {}; // Default background for even rows
+    }
       if (params.data && params.data.isNew) {
         // return { background: '#f0f8ff' }; // Light blue background for new rows
-        return { background: '#c1b3b3' };
+        //return { background: '#c1b3b3' };
+
+        return {background: '#1AFF0019'}
       }
       return null; // Default style for other rows
     },
@@ -548,7 +720,7 @@ export class CountryComponent implements OnInit {
 
     if (format.toLowerCase() === 'excel') {
       // Add Excel-specific formatting options
-      exportParams.fileName = 'data.xlsx'; // Optional: Customize file name
+      exportParams.fileName = 'CountryList.xlsx'; // Optional: Customize file name
       exportParams.sheetName = 'Sheet1';   // Optional: Set sheet name
       this.gridApi.exportDataAsExcel({
         onlySelected: (
@@ -558,7 +730,7 @@ export class CountryComponent implements OnInit {
       
     } else if (format.toLowerCase() === 'csv') {
       // Add CSV-specific formatting options
-      exportParams.fileName = 'data.csv'; // Optional: Customize file name
+      exportParams.fileName = 'CountryList.csv'; // Optional: Customize file name
       exportParams.columnSeparator = ','; // Optional: Customize separator
       this.gridApi.exportDataAsCsv(exportParams);
     } else {

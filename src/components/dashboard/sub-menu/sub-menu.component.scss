@@ -45,4 +45,10 @@
       box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5); // Custom focus ring
     }
   }
+
+  .breadcrumb-wrapper {
+    display: block; /* Override any flex styles */
+    margin: 0 auto 0 0; /* Remove margin */
+}
+
   

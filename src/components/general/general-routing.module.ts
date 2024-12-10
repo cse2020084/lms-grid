@@ -2,12 +2,16 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { CountryComponent } from './country/country.component';
 import { StateComponent } from './state/state.component';
+import { CountryResolver } from '../resolver/country.resolver';
 
 
 const routes: Routes = [
   {
     path: 'country',
-    component: CountryComponent
+    component: CountryComponent,
+    // resolve: {
+    //   countries: CountryResolver, // Attach the resolver here
+    // },
   },
   {
     path: 'state',
@@ -16,7 +20,7 @@ const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'country'
+    redirectTo: 'state'
   }
 ];
 

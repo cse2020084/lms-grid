@@ -14,9 +14,10 @@ import { DataService } from 'src/app/services/data.service';
  </ng-container>
  <ng-template #defaultTemplate>
   <!-- <button  mat-button (click)="edit()" [disabled]="params.data.activeFlag !== 1 || this.params.context.compon Parent.isCreatingNewRow"><i class="bi bi-pencil-square" style="font-size:1.5rem"></i></button> -->
-   <button  mat-button (click)="status()" [ngClass]="{ active: params.data.activeFlag === 1 ,inActive:params.data.activeFlag !== 1}"  [disabled]="this.params.context.componentParent.isCreatingNewRow" > <i *ngIf="params.data.activeFlag ===1" class="bi bi-slash-circle-fill"></i> <i *ngIf="params.data.activeFlag !==1" class="bi bi-check-circle-fill"></i></button>
+   <button  mat-button (click)="status()" [ngClass]="{ active: params.data.activeFlag === 1 ,inActive:params.data.activeFlag !== 1}"  [disabled]="this.params.context.componentParent.isCreatingNewRow" > <img *ngIf="params.data.activeFlag ===1" class="fas fa-ban" src="../../../assets/bann.svg"> <i *ngIf="params.data.activeFlag !==1" class="bi bi-check-circle-fill"></i></button>
  </ng-template>
-`,
+`, 
+
 styles: [`
    .inActive{
     color:green;
@@ -25,8 +26,10 @@ styles: [`
   .active {
    color:rgb(211, 47, 47);
    font-size:1.1rem;
-   
-  }
+}
+  .fas{
+  width:70%;
+}
 `]
 })
 export class ActionComponent implements OnInit,ICellRendererAngularComp {
@@ -116,3 +119,6 @@ export class ActionComponent implements OnInit,ICellRendererAngularComp {
 
 // <i *ngIf="params.data.activeFlag === 1" class="bi bi-slash-circle-fill"></i>
 //  <mat-icon *ngIf="params.data.activeFlag === 1">block</mat-icon>
+
+
+//    <button  mat-button (click)="status()" [ngClass]="{ active: params.data.activeFlag === 1 ,inActive:params.data.activeFlag !== 1}"  [disabled]="this.params.context.componentParent.isCreatingNewRow" > <i *ngIf="params.data.activeFlag ===1" class="bi bi-slash-circle-fill"></i> <i *ngIf="params.data.activeFlag !==1" class="bi bi-check2-circle"></i></button>

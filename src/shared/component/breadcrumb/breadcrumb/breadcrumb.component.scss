@@ -1,0 +1,89 @@
+// .breadcrumb-container {
+//     display: flex;
+//     flex-direction: row;
+//     margin-left: 15px;
+//     margin-top: 10px;
+// }
+
+// .breadcrumb-separator {
+//     margin: 3px 8px;
+//     color: #00000073;
+//     font-size: 16px;
+//     font-weight: bolder;
+// }
+
+// .breadcrumb-link {
+//     line-height: 2;
+//     color: #53535f;
+//     font-weight: 500;
+//     font-size: 2rex;
+//     cursor: pointer;
+//     margin: 0 8px 0 8px;
+//     @media (max-width: 768px) {
+//         line-height: 1;
+//         font-size: 11px;
+//         margin: 8px 8px 0 8px;
+//     }
+// }
+
+// .breadcrumb-link:hover {
+//     color: #0000ff;
+// }
+
+
+
+.breadcrumb-container {
+    display: flex;
+    align-items: center; /* Align items vertically */
+    justify-content: flex-start; /* Align breadcrumb to the left */
+    width: 100%; /* Full width of the line */
+    padding: 10px 20px; /* Add padding for spacing */
+    background-color: #f8f9fa; /* Light background for contrast */
+    border-bottom: 2px solid #e9ecef; /* Subtle border for separation */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    position: relative; /* Ensure it's positioned within its parent */
+    left: 0; /* Force to align left */
+}
+
+.breadcrumb-separator {
+    margin: 0 8px;
+    color: #6c757d; /* Subtle grey */
+    font-size: 16px; /* Moderate size */
+    font-weight: bold;
+}
+
+.breadcrumb-link {
+    color: #53535f; /* Blue links */
+    font-size: 14px; /* Text size */
+    font-weight: 500; /* Medium weight for readability */
+    text-decoration: none; /* No underline */
+    margin: 0 8px; /* Space between links */
+    cursor: pointer; /* Indicate clickable area */
+    transition: color 0.3s ease-in-out; /* Smooth color transition */
+}
+
+.breadcrumb-link:hover {
+    color: #0056b3; /* Darker blue on hover */
+    text-decoration: underline; /* Underline on hover */
+}
+
+@media (max-width: 768px) {
+    .breadcrumb-container {
+        flex-wrap: wrap; /* Allow wrapping for smaller screens */
+        padding: 15px;
+    }
+
+    .breadcrumb-link {
+        font-size: 12px; /* Adjust size for smaller screens */
+        margin: 5px 8px;
+    }
+
+    .breadcrumb-separator {
+        margin: 5px 8px; /* Adjust separator spacing */
+    }
+}
+
+.bi-house-door{
+    font-size: 150%;
+}
+

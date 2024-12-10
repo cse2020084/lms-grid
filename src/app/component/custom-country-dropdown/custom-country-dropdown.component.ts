@@ -26,7 +26,8 @@ import { ICellEditorAngularComp } from 'ag-grid-angular';
         <option 
           *ngFor="let country of filteredOptions" 
           [value]="country"
-          [selected]="country === highlightedOption"
+          (click)="onOptionClick(country)"
+          [class.highlight]="country === highlightedOption"
         >
           {{ country }}
         </option>
@@ -39,7 +40,7 @@ import { ICellEditorAngularComp } from 'ag-grid-angular';
   `,
   styles: [`
     .ag-custom-dropdown {
-    position: fixed;
+    position: sticky;
     top:0;
     left:0;
       
@@ -47,7 +48,7 @@ import { ICellEditorAngularComp } from 'ag-grid-angular';
       height: 250px;
       background: white;
       border: 1px solid #ccc;
-      z-index: 1000;
+      z-index: 10000;
       display: flex;
       flex-direction: column;
     }
@@ -123,6 +124,19 @@ export class CustomCountryDropdownComponent implements ICellEditorAngularComp {
 
        // Add event listener to close on outside click
        document.addEventListener('mousedown', this.handleOutsideClick);
+
+
+       if(this.isTemporaryRow){
+        // Update parent component with column-specific warning
+        if (this.params?.context?.componentParent?.updateColumnWarning) {
+          const columnField = this.params.column.getColId();
+          this.params.context.componentParent.updateColumnWarning(
+            columnField, 
+            'Please Enter Some Data'
+          );
+        }
+        params.value===''
+    }
   }
 
   filterOptions() {
@@ -194,8 +208,17 @@ export class CustomCountryDropdownComponent implements ICellEditorAngularComp {
 
   onSelectionChange() {
     this.showWarning = false;
+    
+    this.highlightedOption = this.selectedValue;
     this.params.stopEditing(true);
     this.updateOnClick();
+  }
+
+  onOptionClick(country: string): void {
+    this.highlightedOption = country; // Update highlighted option
+    this.selectedValue = country;    // Synchronize selected value
+    this.showWarning = false;        // Hide warning, if any
+    this.params.stopEditing(true); 
   }
 
   highlightOption(country: string) {
@@ -206,7 +229,7 @@ export class CustomCountryDropdownComponent implements ICellEditorAngularComp {
     
     return this.selectedValue;
   }
-   // return this.selectedValue;
+   
   
 
   isPopup(): boolean {

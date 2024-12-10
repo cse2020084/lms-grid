@@ -19,6 +19,9 @@ import { GeneralRoutingModule } from './general-routing.module';
 import { CountryComponent } from './country/country.component';
 import { StateComponent } from './state/state.component';
 import { CustomCountryDropdownComponent } from 'src/app/component/custom-country-dropdown/custom-country-dropdown.component';
+import { StateService } from '../services/state.service';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle'
+import { SharedModule } from 'src/shared/shared.module';
 
 
 @NgModule({
@@ -29,7 +32,8 @@ import { CustomCountryDropdownComponent } from 'src/app/component/custom-country
     ClearableFloatingFilterComponent,
     CustomTextCellEditor,
     StateComponent,
-    CustomCountryDropdownComponent
+    CustomCountryDropdownComponent,
+    
   ],
   imports: [
     CommonModule,
@@ -37,8 +41,12 @@ import { CustomCountryDropdownComponent } from 'src/app/component/custom-country
     FormsModule,
     MatButtonModule,
     MatIconModule,
+    MatSlideToggleModule,
     NgSelectModule,
+    SharedModule,
+    
     AgGridModule.withComponents([CountryComponent,SecondCustomComponent,ActionComponent,ClearableFloatingFilterComponent]),
-  ]
+  ],
+  providers: [StateService]
 })
 export class GeneralModule { }

@@ -9,6 +9,7 @@ import { SecondCustomComponent } from 'src/app/component/second-custom/second-cu
 import { DataService } from 'src/app/services/data.service';
 import { LoaderService } from 'src/app/services/loader.service';
 import { ToasterService } from 'src/app/toaster/toaster.service';
+import { StateService } from 'src/components/services/state.service';
 import { CustomCountryDropdownComponent } from 'src/app/component/custom-country-dropdown/custom-country-dropdown.component';
 
 @Component({
@@ -20,6 +21,7 @@ export class StateComponent implements OnInit {
   public rowData: any[] = [];
   public countryList: any[] = [];
   public countryObjectList:any[]=[];
+  public editableColumns:any[]=[];
   public gridColumnApi: any;
   public gridApi!: GridApi;          // Data to be displayed in AG Grid
   public isCheckBoxDisplaying: boolean = true; // Flag to track row creation state
@@ -30,12 +32,27 @@ export class StateComponent implements OnInit {
     private dataService: DataService,
     private loader:LoaderService,
     private toasterService: ToasterService,
+    private stateService:StateService,
   ) { }
 
   ngOnInit(): void {
-    // this.loadState(false)
-     this.getCountry()
+    
+    this.editableColumns.push('entityParentBusinessName','entityBusinessShortCode','entityBusinessName')
+    this.getCountry() // for getting country  list for country column
+
+     // Emit an empty array initially
+    //this.stateService.setCountries([]);
+
+    // Simulate data load (replace this with actual API call)
+    // setTimeout(() => {
+     
+    //   console.log('StateComponent: Setting countries to:', this.rowData);
+    //   this.stateService.updateStateData(this.rowData); // Update StateService
+    // }, 3000)
+     
   }
+
+  
 
   // Object to store warning messages for different columns
   public columnWarnings = {
@@ -83,7 +100,8 @@ export class StateComponent implements OnInit {
         'deactivated-row': (params) => params.data.activeFlag !== 1
       },
       cellRenderer: params => {
-        if (params.data.isNew) {
+        if (params.data.isNew && !params.data.entityParentBusinessName) {
+          
           const warning = this.columnWarnings.entityParentBusinessName;
           return `
           <div class="custom-cell-renderer" ;>
@@ -92,7 +110,7 @@ export class StateComponent implements OnInit {
               placeholder="Choose Country"
               style="width: calc(100% - 20px); padding: 8px; font-size: 14px;}"
             />
-             ${warning ? `<div class="warning-message">${warning}</div>` : ''}
+             ${warning ? `<div class="warning-message" style="color:red ">${warning}</div>` : ''}
             
           </div>
         `;
@@ -109,6 +127,11 @@ export class StateComponent implements OnInit {
       },
       floatingFilterComponentFramework: ClearableFloatingFilterComponent,
       cellEditor: 'customTextCellEditor',
+      cellEditorParams:{
+        metadata:{
+          parentField:['entityParentBusinessName']
+        }
+      },
       cellRenderer: params => {
         if (params.data.isNew) {
           const warning = this.columnWarnings.entityBusinessName;;
@@ -144,6 +167,11 @@ export class StateComponent implements OnInit {
       },
       floatingFilterComponentFramework: ClearableFloatingFilterComponent,
       cellEditor: 'customTextCellEditor',
+      cellEditorParams:{
+        metadata:{
+          parentField:['entityParentBusinessName']
+        }
+      },
       cellRenderer: params => {
         if (params.data.isNew) {
           const warning = this.columnWarnings.entityBusinessShortCode;
@@ -231,7 +259,25 @@ export class StateComponent implements OnInit {
           if (records.statusCode === "200" || records.statusCode === "300") {
             // Update rowData with the data received from the server
             this.rowData = records.responseList || [];
+
+            // Ensure data is populated before updating
+        if (records.responseList && records.responseList.length > 0) {
+          this.stateService.updateStateData(records.responseList);
+          
+          // Optional: Debugging method
+          this.stateService.debugCurrentValue();
+        }
+           // this.stateService.updateStateData(records.responseList|| []);
             this.gridApi.setRowData(this.rowData); // Update the grid with new data
+
+             // Extract unique country names from the grid's row data
+    
+
+    // Update the StateService with the list of countries
+    
+    //this.stateService.setCountries(this.rowData);
+            console.log(this.rowData)
+            
             this.toasterService.showSuccess('Data loaded successfully');
           } else {
             console.error('Error:', records.errorMessage);
@@ -265,6 +311,8 @@ export class StateComponent implements OnInit {
     // this.getCountry()
     this.loadState(false); // Assuming loadData is asynchronous
     
+    //this.stateService.setRowData(this.rowData);
+    
 
 
   }
@@ -285,11 +333,14 @@ export class StateComponent implements OnInit {
     getRowStyle: params => {
       if (params.data && params.data.isNew) {
         // return { background: '#f0f8ff' }; // Light blue background for new rows
-        return { background: '#c1b3b3' };
+        return { background: '#1AFF0019' };
       }
       return null; // Default style for other rows
     },
     suppressRowClickSelection: true,
+    components: {
+      customTextCellEditor: SecondCustomComponent
+    }
     
     
 
@@ -309,7 +360,8 @@ export class StateComponent implements OnInit {
       isNew: true,
       activeFlag: 1,
       rowClass: 'ag-temporary-row', // Apply a custom class for styling
-      forceEdit: true // Add a custom flag to force editing behavior
+      forceEdit: true, // Add a custom flag to force editing behavior
+      
     };
 
     this.rowData.unshift(newItem);
@@ -330,9 +382,13 @@ export class StateComponent implements OnInit {
 
 
     if (!item.entityParentBusinessName  || !item.entityBusinessName || !item.entityBusinessShortCode) {
+      console.log(item)
       console.error('Error saving row: Mandatory Field is NULL');
       return;
     }
+
+
+    
 
     
     // Find the corresponding entityParentBusinessID
@@ -367,6 +423,7 @@ export class StateComponent implements OnInit {
         item.isNew = false; // Mark row as saved
         console.log('Row saved successfully');
         this.isCreatingNewRow = false; // Reset the new row creation flag
+        this.clickedOnCreateButton = false; // to enable create button again
         this.isCheckBoxDisplaying=true;
         this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
         this.toasterService.showSuccess('Data saved successfully');
@@ -374,7 +431,7 @@ export class StateComponent implements OnInit {
       },
       error => {
         console.error('Error saving row:', error);
-        this.toasterService.showError('Not saved')
+        this.toasterService.showError(`Not saved-${error}`)
       }
     ).catch((errorMessage) => {
       console.log('error ..')
@@ -384,7 +441,7 @@ export class StateComponent implements OnInit {
     // this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
     // this.loadData();
    // this.cdr.markForCheck();  // Manually trigger change detection
-    this.clickedOnCreateButton = false; // to enable create button again
+    // this.clickedOnCreateButton = false; // to enable create button again
     // this.gridApi.refreshCells({
 
     //   force: true,
@@ -405,7 +462,7 @@ export class StateComponent implements OnInit {
 
     const index = this.rowData.indexOf(item);
     
-    console.log(this.rowData, index)
+    console.log(this.columnDefs, index)
     // if (index > -1) {
     this.rowData.splice(0, 1);
 
@@ -421,6 +478,10 @@ export class StateComponent implements OnInit {
     this.isCheckBoxDisplaying=true;
     item.isNew = false; // Mark row as cancelled
     this.toasterService.showSuccess('Not added')
+
+   this.editableColumns.forEach(country=>{
+    this.updateColumnWarning(country,'');
+   })
   }
 
   
@@ -572,6 +633,8 @@ export class StateComponent implements OnInit {
 
 
   deactivateRow(item) {
+    
+    
     const payload = {
       genericManipulationRequestEntity: {
         entityID: item.entityID,
@@ -615,6 +678,7 @@ export class StateComponent implements OnInit {
   
   getCountry() {
 
+    
     const payload = {
       genericRequestEntity: {
         companyID: 1,
@@ -635,7 +699,21 @@ export class StateComponent implements OnInit {
             // Update rowData with the data received from the server
             ///this.countryList = records.responseList || [];
             ///greyed  below 1 line
-            this.countryList = records.responseList.map((item: any) => item.entityBusinessName);
+            console.log('getcountry-record',records)
+            // this.countryList = records.responseList
+            // .filter((item: any) => item.activeFlag)
+            // .map((item: any) => {
+            //   console.log('map-item',item)
+            //    item.entityBusinessName
+            // });
+
+            records.responseList.forEach((items)=>{
+              if(items.activeFlag===1){
+                this.countryList.push(items.entityBusinessName)
+              }
+            })
+
+            console.log('country-list',this.countryList)
             // Update countryObjectList with both ID and Name
             this.countryObjectList = records.responseList.map((item: any) => ({
               entityBusinessName: item.entityBusinessName,
@@ -671,7 +749,7 @@ export class StateComponent implements OnInit {
 
     if (format.toLowerCase() === 'excel') {
       // Add Excel-specific formatting options
-      exportParams.fileName = 'data.xlsx'; // Optional: Customize file name
+      exportParams.fileName = 'stateList.xlsx'; // Optional: Customize file name
       exportParams.sheetName = 'Sheet1';   // Optional: Set sheet name
       this.gridApi.exportDataAsExcel({
         onlySelected: (
@@ -681,7 +759,7 @@ export class StateComponent implements OnInit {
       
     } else if (format.toLowerCase() === 'csv') {
       // Add CSV-specific formatting options
-      exportParams.fileName = 'data.csv'; // Optional: Customize file name
+      exportParams.fileName = 'stateList.csv'; // Optional: Customize file name
       exportParams.columnSeparator = ','; // Optional: Customize separator
       this.gridApi.exportDataAsCsv(exportParams);
     } else {

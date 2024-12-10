@@ -1,6 +1,9 @@
 
 <!-- <app-loading *ngIf="loading$ | async"></app-loading>
 <app-toaster></app-toaster> -->
+<div class="breadcrumb-wrapper">
+  <app-breadcrumb childLink="General Master" subchildLink="Country"></app-breadcrumb>
+</div>
 
 <div class="above-grid-bar">
   <!-- <div class="pagination-number-selector">
@@ -23,14 +26,20 @@
   <button class="import-btn" style="background: none; color: black;" (click)="onBtPrint()"><i
       class="bi bi-filetype-pdf" style="font-size: 2rem;"></i></button>
 
-  <button (click)="addNewRow()" [disabled]="clickedOnCreateButton" style="padding: 1.5vh 2vw;">Add</button>
+      
+      <mat-slide-toggle class="lms-matslidetoggle" color="primary"
+          (change)="showLog($event.checked)" >
+          
+      </mat-slide-toggle>
+      <span class="remaining-space"></span>
+  <button (click)="addNewRow()" [disabled]="clickedOnCreateButton || this.currentColumnDefs === this.logDefs" style="padding: 1.5vh 2vw;">Add</button>
 </div>
 </div>
 
 <div class="ag-theme-alpine ag-container">
 
-  <ag-grid-angular id="myGrid" style="width: 100%; height: 100%; " class="ag-theme-alpine" [rowData]="rowData "
-    [columnDefs]="columnDefs" [defaultColDef]="defaultColDef" [frameworkComponents]="frameworkComponents"
+  <ag-grid-angular id="myGrid" style="width: 100%; height: 100%; " class="ag-theme-alpine" [rowData]="rowData " [columnDefs]="columnDefs"
+     [defaultColDef]="defaultColDef" [frameworkComponents]="frameworkComponents"
     (gridReady)="onGridReady($event)" [gridOptions]="gridOptions" [suppressClickEdit]="false" [pagination]="true"
     [paginationPageSize]="paginationPageSize" [paginationNumberFormatter]="paginationNumberFormatter"
     rowSelection="multiple" [singleClickEdit]="true" [context]="{ componentParent: this }" domLayout="autoHeight">

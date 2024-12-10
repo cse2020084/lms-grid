@@ -1,12 +1,14 @@
  interface menulist{
     id:number,
-    name:string
+    name:string,
+    menuName:string,
 }
 
 export const menulist:menulist[]=[
     {
         id:1,
-        name:'general'
+        name:'general',
+        menuName:'General Master'
 }
 ]
 
