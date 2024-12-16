@@ -29,6 +29,7 @@ styles: [`
 }
   .fas{
   width:70%;
+  
 }
 `]
 })

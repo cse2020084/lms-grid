@@ -20,7 +20,7 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
   styles: [`
     .toast {
       position: fixed;
-      top: 90px;
+      top: 40px;
       right: 20px;
       padding: 15px;
       color: white;

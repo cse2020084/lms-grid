@@ -14,5 +14,10 @@ export const submenulist: submenulist[] = [
         id: 2,
         name: 'state',
         parentId: 1
+    },
+    {
+        id: 3,
+        name: 'city',
+        parentId: 1
     }
 ]

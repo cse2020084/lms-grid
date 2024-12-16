@@ -1,0 +1,64 @@
+
+<!-- <app-loading *ngIf="loading$ | async"></app-loading>
+<app-toaster></app-toaster> -->
+<div class="breadcrumb-wrapper">
+    <app-breadcrumb childLink="General Master" subchildLink="City"></app-breadcrumb>
+  </div>
+  
+  <div class="above-grid-bar">
+    <!-- <div class="pagination-number-selector">
+      Rows Number:
+      <select (change)="onPageSizeChanged()" id="page-size">
+        <option value="10" selected="">10</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="500">500</option>
+      </select>
+    </div> -->
+  
+  <div class="format-option-bar">
+    <label class="option" for="selectedOnly"><input id="selectedOnly" type="checkbox"  >Selected Rows Only</label>
+  
+    <button class="import-btn" style="background: none; color: black;" (click)="getDownload('excel')"><i
+        class="bi bi-file-earmark-excel-fill" style="font-size: 2rem;"></i></button>
+    <button class="import-btn" style="background: none; color: black;" (click)="getDownload('csv')"><i
+        class="bi bi-filetype-csv" style="font-size: 2rem;"></i></button>
+    <button class="import-btn" style="background: none; color: black;" (click)="onBtPrint()"><i
+        class="bi bi-filetype-pdf" style="font-size: 2rem;"></i></button>
+  
+        
+        <mat-slide-toggle class="lms-matslidetoggle" color="primary"
+            (change)="showLog($event.checked)" >
+            
+        </mat-slide-toggle>
+        <span class="remaining-space"></span>
+    <button (click)="addNewRow()" [disabled]="clickedOnCreateButton || this.currentColumnDefs === this.logDefs" style="padding: 1.5vh 2vw;">Add</button>
+  </div>
+  </div>
+  
+  
+  <div class="grid-container" style="width: 100%;">
+  <div class="ag-theme-alpine ag-container">
+  
+    <ag-grid-angular id="myGrid" style="width: 100%; height: 100%; " class="ag-theme-alpine grid-scrollable" [rowData]="rowData " [columnDefs]="columnDefs"
+       [defaultColDef]="defaultColDef" [frameworkComponents]="frameworkComponents"
+      (gridReady)="onGridReady($event)" [gridOptions]="gridOptions" [suppressClickEdit]="false" [pagination]="true"
+      [paginationPageSize]="paginationPageSize" [paginationNumberFormatter]="paginationNumberFormatter"
+      rowSelection="multiple" [singleClickEdit]="true" [context]="{ componentParent: this }" domLayout="autoHeight"  [suppressHorizontalScroll]="false">
+    </ag-grid-angular>
+   
+  
+    <div class="pagination-number-selector">
+      Rows Number:
+      <select (change)="onPageSizeChanged()" id="page-size">
+        <option value="10" selected="">10</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="500">500</option>
+      </select>
+    </div>
+  </div>
+  </div>
+  
+  <!-- (cellValueChanged)="onCellValueChanged($event)" -->
+  <!-- [paginationAutoPageSize]="true" -->

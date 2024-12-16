@@ -11,6 +11,7 @@ import { LoaderService } from 'src/app/services/loader.service';
 import { ToasterService } from 'src/app/toaster/toaster.service';
 import { StateService } from 'src/components/services/state.service';
 import { CustomCountryDropdownComponent } from 'src/app/component/custom-country-dropdown/custom-country-dropdown.component';
+import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'app-state',
@@ -22,6 +23,9 @@ export class StateComponent implements OnInit {
   public countryList: any[] = [];
   public countryObjectList:any[]=[];
   public editableColumns:any[]=[];
+  public currentColumnDefs: ColDef[];
+  public logView:boolean=false;
+  public statesList$: BehaviorSubject<Array<any>> = new BehaviorSubject([]);
   public gridColumnApi: any;
   public gridApi!: GridApi;          // Data to be displayed in AG Grid
   public isCheckBoxDisplaying: boolean = true; // Flag to track row creation state
@@ -39,16 +43,8 @@ export class StateComponent implements OnInit {
     
     this.editableColumns.push('entityParentBusinessName','entityBusinessShortCode','entityBusinessName')
     this.getCountry() // for getting country  list for country column
-
-     // Emit an empty array initially
-    //this.stateService.setCountries([]);
-
-    // Simulate data load (replace this with actual API call)
-    // setTimeout(() => {
-     
-    //   console.log('StateComponent: Setting countries to:', this.rowData);
-    //   this.stateService.updateStateData(this.rowData); // Update StateService
-    // }, 3000)
+    this.currentColumnDefs = this.columnDefs
+   
      
   }
 
@@ -130,11 +126,12 @@ export class StateComponent implements OnInit {
       cellEditorParams:{
         metadata:{
           parentField:['entityParentBusinessName']
-        }
+        },
+        
       },
       cellRenderer: params => {
         if (params.data.isNew) {
-          const warning = this.columnWarnings.entityBusinessName;;
+          const warning = this.columnWarnings.entityBusinessName;
           return `
           <div class="custom-cell-renderer" ;>
             <input 
@@ -220,6 +217,9 @@ export class StateComponent implements OnInit {
     }
   ]
 
+
+    
+
   // Default column settings for AG Grid
   public defaultColDef = {
     //flex: 1,
@@ -237,8 +237,73 @@ export class StateComponent implements OnInit {
   };
 
 
-  loadState(auditflag:boolean){
 
+   /***********/
+  //showlog
+
+
+  public logDefs:ColDef[]=[
+    {headerName: 'Country Name', field: 'entityParentBusinessName'},
+    {headerName: 'State Name', field: 'entityBusinessName'},
+    {headerName: 'Abbreviation', field: 'entityBusinessShortCode'},
+    {headerName: 'Last Updated By', field: 'createdByUser'},
+    {headerName: 'Last Modified on', field: 'effectiveDateFrom',},
+    {headerName: 'Audit Action', field: 'auditAction',}
+  ];
+
+  toggleColumnDefs(){
+    if (this.currentColumnDefs === this.columnDefs) {
+      this.currentColumnDefs = this.logDefs;
+      this.logView=true;
+    } else {
+      
+      this.currentColumnDefs = this.columnDefs;
+      this.logView=false;
+      
+    }
+
+    
+    // Optional: If you want to force grid to refresh
+    if (this.gridApi) {
+      this.gridApi.setColumnDefs(this.currentColumnDefs);
+      
+
+      
+    }
+   
+  }
+
+ 
+
+  showLog(toggleFlag) {
+    this.toggleColumnDefs();
+    this.statesList$.next([]);
+    console.log('stateList', this.statesList$);
+
+    if (toggleFlag) {
+        this.loadState(true)
+            .then((records: any) => {
+                this.statesList$.next(records);
+                console.log('countryList', this.statesList$);
+            })
+            .catch(error => {
+                this.statesList$.next([]);
+                console.log('error', error);
+            });
+    }else{
+      this.statesList$.next([]);
+      this.loadState(false)
+    }
+  
+}
+
+
+
+  /*******END*******/
+
+
+  loadState(auditflag:boolean){
+    return new Promise((resolve, reject) => {
     const payload = {
       genericRequestEntity: {
         companyID: 1,
@@ -261,12 +326,12 @@ export class StateComponent implements OnInit {
             this.rowData = records.responseList || [];
 
             // Ensure data is populated before updating
-        if (records.responseList && records.responseList.length > 0) {
-          this.stateService.updateStateData(records.responseList);
+        // if (records.responseList && records.responseList.length > 0) {
+        //   this.stateService.updateStateData(records.responseList);
           
-          // Optional: Debugging method
-          this.stateService.debugCurrentValue();
-        }
+        //   // Optional: Debugging method
+        //   this.stateService.debugCurrentValue();
+        // }
            // this.stateService.updateStateData(records.responseList|| []);
             this.gridApi.setRowData(this.rowData); // Update the grid with new data
 
@@ -279,9 +344,11 @@ export class StateComponent implements OnInit {
             console.log(this.rowData)
             
             this.toasterService.showSuccess('Data loaded successfully');
+            resolve(records.responseList); // Resolve with the actual data
           } else {
             console.error('Error:', records.errorMessage);
             this.toasterService.showError('Failed to load data');
+            reject(records.errorMessage); // Reject with error message
           }
           this.loader.hideSpinner();
         },
@@ -289,9 +356,10 @@ export class StateComponent implements OnInit {
           this.loader.hideSpinner();
           this.toasterService.showError('Network error occurred');
           console.error('Network or server issue:', error);
+          reject(error);
         }
       );
-
+    });
 
   }
 
@@ -303,15 +371,22 @@ export class StateComponent implements OnInit {
    onGridReady(params) {
     this.gridApi = params.api;
     this.gridColumnApi = params.columnApi;
-    // (document.getElementById("selectedOnly") as HTMLInputElement).checked =
-    //   true;
-
-
-    // Load data into grid once it's fully initialized
-    // this.getCountry()
     this.loadState(false); // Assuming loadData is asynchronous
-    
-    //this.stateService.setRowData(this.rowData);
+
+ 
+
+    // this.stateService.loadStateAndUpdate(false).subscribe(
+    //   (data) => {
+    //     this.rowData = data; // Populate AG Grid
+    //     // this.anotherList = data.filter((item) => item.someCondition); // Fill another list
+    //     console.log('Component A data:', this.rowData,data);
+    //   },
+    //   (error) => {
+    //     console.error('Error in Component A:', error.message);
+    //   }
+    // );
+
+    // this.gridApi.setRowData(this.rowData);
     
 
 
@@ -327,10 +402,14 @@ export class StateComponent implements OnInit {
       return params.data && params.data.isNew ? 'ag-temporary-row' : ''; // Apply temporary row class
     },
     getRowHeight: params => {
+      if(this.logView){
+        return  30
+      }
       return params.data.isNew ? 100 : 50; // Set 80px for temporary row, 40px for normal rows
     },
 
     getRowStyle: params => {
+   
       if (params.data && params.data.isNew) {
         // return { background: '#f0f8ff' }; // Light blue background for new rows
         return { background: '#1AFF0019' };
@@ -384,6 +463,7 @@ export class StateComponent implements OnInit {
     if (!item.entityParentBusinessName  || !item.entityBusinessName || !item.entityBusinessShortCode) {
       console.log(item)
       console.error('Error saving row: Mandatory Field is NULL');
+      this.toasterService.showError('fill all mandatory fields');
       return;
     }
 
@@ -417,24 +497,29 @@ export class StateComponent implements OnInit {
     // }
 
 
-
+    this.loader.showSpinner('Data is being Saved');
     this.dataService.saveRowData(item, 'stateservice/createChildEntity/', payload).then(
-      (result) => {
+      (response) => {
+        //if (response && response.entityID) item.entityID = response.entityID
         item.isNew = false; // Mark row as saved
         console.log('Row saved successfully');
         this.isCreatingNewRow = false; // Reset the new row creation flag
         this.clickedOnCreateButton = false; // to enable create button again
         this.isCheckBoxDisplaying=true;
         this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
+        this.loader.hideSpinner();
         this.toasterService.showSuccess('Data saved successfully');
         this.loadState(false);
+        
       },
       error => {
         console.error('Error saving row:', error);
+        this.loader.hideSpinner();
         this.toasterService.showError(`Not saved-${error}`)
       }
     ).catch((errorMessage) => {
       console.log('error ..')
+      this.loader.hideSpinner();
       this.toasterService.showError('Not saved')
     });
 
@@ -594,6 +679,7 @@ export class StateComponent implements OnInit {
         entityBusinessName: item.entityBusinessName,
         entityBusinessShortCode: item.entityBusinessShortCode,
         entityParentBusinessID: item.entityParentBusinessID,
+        entitySuperParentBusinessID: item.entitySuperParentBusinessID,
         auditAction: 'A',
         companyID: 1, //auth.service
         createdBy: 1, //auth.service
@@ -642,6 +728,7 @@ export class StateComponent implements OnInit {
         entityBusinessName: item.entityBusinessName,
         entityBusinessShortCode: item.entityBusinessShortCode,
         entityParentBusinessID: item.entityParentBusinessID,
+        entitySuperParentBusinessID: item.entitySuperParentBusinessID,
         auditAction: 'D',
         companyID: 1, //auth.service
         createdBy: 1, //auth.service
@@ -678,7 +765,7 @@ export class StateComponent implements OnInit {
   
   getCountry() {
 
-    
+  
     const payload = {
       genericRequestEntity: {
         companyID: 1,
@@ -713,14 +800,14 @@ export class StateComponent implements OnInit {
               }
             })
 
-            console.log('country-list',this.countryList)
+            console.log('country-list',records)
             // Update countryObjectList with both ID and Name
             this.countryObjectList = records.responseList.map((item: any) => ({
               entityBusinessName: item.entityBusinessName,
               entityBusinessID: item.entityBusinessID
             }));
 
-
+ 
             console.log(this.countryObjectList)
           } else {
             console.error('Error:', records.errorMessage);

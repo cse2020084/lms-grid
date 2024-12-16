@@ -22,6 +22,7 @@ import { CustomCountryDropdownComponent } from 'src/app/component/custom-country
 import { StateService } from '../services/state.service';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle'
 import { SharedModule } from 'src/shared/shared.module';
+import { CityComponent } from './city/city/city.component';
 
 
 @NgModule({
@@ -33,6 +34,7 @@ import { SharedModule } from 'src/shared/shared.module';
     CustomTextCellEditor,
     StateComponent,
     CustomCountryDropdownComponent,
+    CityComponent,
     
   ],
   imports: [

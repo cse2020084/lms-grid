@@ -4,28 +4,36 @@ import { ActionComponent } from 'src/app/component/action/action.component';
 import { DataService } from 'src/app/services/data.service';
 import { SecondCustomComponent } from 'src/app/component/second-custom/second-custom.component';
 import { ClearableFloatingFilterComponent } from 'src/app/component/clearable-floating-filter/clearable-floating-filter.component';
-import {generatePDF} from '../../../script/jspdf';
+//import {generatePDF} from '../../../script/jspdf';
 import 'ag-grid-enterprise';
+
 //import { generatePDF } from '../script/jspdf'
 import { LoaderService } from 'src/app/services/loader.service';
 import { ToasterService } from 'src/app/toaster/toaster.service';
 import { StateService } from 'src/components/services/state.service';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, Subscription } from 'rxjs';
+import { CustomCountryDropdownComponent } from 'src/app/component/custom-country-dropdown/custom-country-dropdown.component';
+
+interface CustomColDef extends ColDef {
+  // Define your custom properties here
+  selectionList?:any,
+  isParent?:boolean
+}
 
 
 
 
 @Component({
-  selector: 'app-country',
-  templateUrl: './country.component.html',
-  styleUrls: ['./country.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush // Adding Change Detection Strategy
+  selector: 'app-city',
+  templateUrl: './city.component.html',
+  styleUrls: ['./city.component.scss']
+  //changeDetection: ChangeDetectionStrategy.OnPush // Adding Change Detection Strategy
 })
-export class CountryComponent implements OnInit {
+export class CityComponent implements OnInit {
   public stateCountries: any[] = [];
   public currentColumnDefs: ColDef[];
-  public countryList$: BehaviorSubject<Array<any>> = new BehaviorSubject([]);
+  public cityList$: BehaviorSubject<Array<any>> = new BehaviorSubject([]);
   countryListSubscription: Subscription;
   constructor(
     private dataService: DataService,
@@ -39,11 +47,16 @@ export class CountryComponent implements OnInit {
      
    }
 
+   
 
 
 
   loading$ = this.loader.loading$;
   public rowData: any[] = [];          // Data to be displayed in AG Grid
+  public countryList: any[] = [];
+  public countryObjectList:any[]=[];
+  public stateObjectList:any[]=[];
+  public stateList: any[] = [];
   public gridApi!: GridApi;
   public gridColumnApi: any;
   public isCreatingNewRow: boolean = false; // Flag to track row creation state
@@ -61,6 +74,8 @@ export class CountryComponent implements OnInit {
 
   // Object to store warning messages for different columns
   public columnWarnings = {
+    entitySuperParentBusinessName:'',
+    entityParentBusinessName:'',
     entityBusinessName: '',             // for State Name column (SecondCustom)
     entityBusinessShortCode:'' ,   // for State short code column (SecondCustom)
    
@@ -72,9 +87,24 @@ export class CountryComponent implements OnInit {
   }
 
 
+  ngOnInit() {
+    //this.loadData()
+    this.getCountry(false);
+    //this.getState(false);
+    
+    this.editableColumns.push('entitySuperParentBusinessName','entityParentBusinessName','entityBusinessShortCode','entityBusinessName');
+    this.currentColumnDefs = this.columnDefs
+ 
+    this.stateService.stateData$.subscribe((data) => {
+      this.stateCountries = data;
+      console.log('Updated rowData in Component B:', this.rowData);
+    });
+
+  }
 
 
-  public columnDefs: ColDef[] = [
+
+  public columnDefs:CustomColDef[]=[
     {
       field:'',
       checkboxSelection: (params) => {
@@ -82,27 +112,83 @@ export class CountryComponent implements OnInit {
       },
        headerCheckboxSelection: true,
       width:50,
+      
       cellClassRules: {
         'deactivated-row': (params) => params.data.activeFlag !== 1
       },
     },
     {
-      headerName: 'Country Name', field: 'entityBusinessName', sortable: true, editable: true, width: 250, 
+      headerName: 'Country name', field: 'entitySuperParentBusinessName', sortable: true,
+      editable: true,
+      width: 250,
+      cellEditor: 'customCountryDropdown', // Use our custom dropdown component
+      filter: "agTextColumnFilter",
+      floatingFilter: true,
+      ///temporary, as i like simple better
+      floatingFilterComponentParams: {
+        suppressFilterButton: true, // Removes the default filter button
+      },
+      floatingFilterComponentFramework: ClearableFloatingFilterComponent,
+      selectionList: { data: [], key: 'entityBusinessID', value: 'entityBusinessName' },
+      isParent:true,
+      cellEditorParams:(params: any) => {
+        return { 
+          options: this.countryList,
+
+         }; // Dynamically pass countryList
+      },
+      cellClassRules: {
+        'deactivated-row': (params) => params.data.activeFlag !== 1
+      },
+      cellRenderer: params => {
+        if (params.data.isNew && !params.data.entitySuperParentBusinessName) {
+          
+          const warning = this.columnWarnings.entitySuperParentBusinessName;
+          return `
+          <div class="custom-cell-renderer" ;>
+            <input 
+              value="${params.value || ''}"
+              placeholder="Choose Country"
+              style="width: calc(100% - 20px); padding: 8px; font-size: 14px;}"
+            />
+             ${warning ? `<div class="warning-message" style="color:red ">${warning}</div>` : ''}
+            
+          </div>
+        `;
+        }
+        return params.value;
+      }
+    },
+    { 
+      headerName: 'State Name', field: 'entityParentBusinessName', sortable: true, editable: true,
+      width: 250, 
       filter: "agTextColumnFilter",
       floatingFilter: true,
       floatingFilterComponentParams: {
         suppressFilterButton: true, // Removes the default filter button
       },
       floatingFilterComponentFramework: ClearableFloatingFilterComponent,
-      cellEditor: 'customTextCellEditor',
+      cellEditor: 'customCountryDropdown', // Use our custom dropdown component',
+      cellEditorParams:{
+        metadata:{
+          parentField:['entitySuperParentBusinessName'],
+        },
+        options:(params)=>{
+          console.log('params in city',params)
+          return this.fetchState(params.data.entitySuperParentBusinessName);
+          // this.getState(params.data.entitySuperParentBusinessName,false)
+        } ,
+        parent:'entitySuperParentBusinessName',
+      },
       cellRenderer: params => {
-        if (params.data.isNew) {
-          const warning = this.columnWarnings.entityBusinessName;;
+        if (params.data.isNew && !params.data.entityParentBusinessName) {
+          const warning =this.columnWarnings.entityParentBusinessName;
+         
           return `
           <div class="custom-cell-renderer" ;>
             <input 
               value="${params.value || ''}"
-              placeholder="Enter Country"
+              placeholder="Enter State"
               style="width: calc(100% - 20px); padding: 8px; font-size: 14px;}"
             />
              ${warning ? `<div class="warning-message" style="color: red;">${warning}</div>` : ''}
@@ -115,12 +201,55 @@ export class CountryComponent implements OnInit {
 
         'deactivated-row': (params) => params.data.activeFlag !== 1
 
-      },
+      }
       
 
     },
     {
-      headerName: 'Abbreviation', field: 'entityBusinessShortCode', sortable: true, editable: true, width: 230,
+      headerName: 'City Name', field: 'entityBusinessName', sortable: true, editable: true, 
+      width: 250, 
+      filter: "agTextColumnFilter",
+      floatingFilter: true,
+      floatingFilterComponentParams: {
+        suppressFilterButton: true, // Removes the default filter button
+      },
+      floatingFilterComponentFramework: ClearableFloatingFilterComponent,
+      cellEditor: 'customTextCellEditor',
+      cellEditorParams:{
+        metadata:{
+          parentField:['entitySuperParentBusinessName','entityParentBusinessName']
+        }
+      },
+      cellRenderer: params => {
+        if (params.data.isNew) {
+          const warning =this.columnWarnings.entityBusinessName;
+         
+          return `
+          <div class="custom-cell-renderer" ;>
+            <input 
+              value="${params.value || ''}"
+              placeholder="Enter City"
+              style="width: calc(100% - 20px); padding: 8px; font-size: 14px;}"
+            />
+             ${warning ? `<div class="warning-message" style="color: red;">${warning}</div>` : ''}
+          </div>
+        `;
+        }
+        return params.value;
+      },
+      cellClassRules: {
+
+        'deactivated-row': (params) => params.data.activeFlag !== 1
+
+      }
+      
+
+    },
+    
+    {
+      headerName: 'Abbreviation', field: 'entityBusinessShortCode', sortable: true, editable: true,
+      // flex:1.2,
+      width:200,
       filter: "agTextColumnFilter",
       floatingFilter: true,
       ///temporary, as i like simple better
@@ -129,6 +258,11 @@ export class CountryComponent implements OnInit {
       },
       floatingFilterComponentFramework: ClearableFloatingFilterComponent,
       cellEditor: 'customTextCellEditor',
+      cellEditorParams:{
+        metadata:{
+          parentField:['entityParentBusinessName']
+        }
+      },
       cellRenderer: params => {
         if (params.data.isNew) {
           const warning = this.columnWarnings.entityBusinessShortCode;
@@ -145,8 +279,6 @@ export class CountryComponent implements OnInit {
         }
         return params.value;
       },
-      
-      
       cellClassRules: {
         'deactivated-row': (params) => params.data.activeFlag !== 1
       },
@@ -154,13 +286,19 @@ export class CountryComponent implements OnInit {
 
     },
     {
-      headerName: 'Last Updated By', field: 'createdByUser', width: 230,sortable: true,
+      headerName: 'Last Updated By', field: 'createdByUser', 
+      //flex:1,
+      width:200,
+      sortable: true,
       cellClassRules: {
         'deactivated-row': (params) => params.data.activeFlag !== 1
       },
     },
     {
-      headerName: 'Last Modified on', field: 'effectiveDateFrom', width: 320, filter: "agDateColumnFilter", sortable: true, cellClassRules: {
+      headerName: 'Last Modified on', field: 'effectiveDateFrom',
+       //flex:1,
+       width:200,
+        filter: "agDateColumnFilter", sortable: true, cellClassRules: {
         'deactivated-row': (params) =>
           params.data.activeFlag !== 1
       },
@@ -170,14 +308,15 @@ export class CountryComponent implements OnInit {
       headerName: 'Status',
       sortable: true,
       cellRenderer: 'actionCellRenderer', // Uses custom cell renderer for actions
-      width: 250,
+      //flex:1.2,
+      width:200,
       cellRendererParams: {
         activateRow: this.activateRow.bind(this),
         deactivateRow: this.deactivateRow.bind(this)
       }
 
     }
-  ];
+  ]
 
 
 
@@ -189,13 +328,15 @@ export class CountryComponent implements OnInit {
     //flex: 1,
     resizable: true,
     paginationPageSizeSelector: [8, 10, 20],
-    columnDefs:this.columnDefs
+    columnDefs:this.columnDefs,
+    width: 150,
 
   };
   // Register framework components, such as custom cell renderers
   public frameworkComponents = {
     actionCellRenderer: ActionComponent,
     // customTextCellEditor: CustomTextCellEditor
+    customCountryDropdown:CustomCountryDropdownComponent,
     customTextCellEditor: SecondCustomComponent
   };
 
@@ -204,32 +345,24 @@ export class CountryComponent implements OnInit {
 
 
 private sub:Subscription
-  ngOnInit() {
-    //this.loadData()
-    this.editableColumns.push('entityBusinessShortCode','entityBusinessName');
-    this.currentColumnDefs = this.columnDefs
- 
-    this.stateService.stateData$.subscribe((data) => {
-      this.stateCountries = data;
-      console.log('Updated rowData in Component B:', this.rowData);
-    });
+  
 
-  }
-
-  ngOnDestroy() {
-    if (this.countryListSubscription) {
-      this.countryListSubscription.unsubscribe();
-    }
-  }
+  // ngOnDestroy() {
+  //   if (this.countryListSubscription) {
+  //     this.countryListSubscription.unsubscribe();
+  //   }
+  // }
 
   /***********/
   //showlog
 
 
   public logDefs:ColDef[]=[
-    {headerName: 'Country Name', field: 'entityBusinessName'},
+    {headerName: 'Country Name', field: 'entitySuperParentBusinessName'},
+    {headerName: 'State Name', field: 'entityParentBusinessName'},
+    {headerName: 'City Name', field: 'entityBusinessName'},
     {headerName: 'Abbreviation', field: 'entityBusinessShortCode'},
-    {headerName: 'Last Updated By', field: 'createdByUser',flex:1.5,},
+    {headerName: 'Last Updated By', field: 'createdByUser'},
     {headerName: 'Last Modified on', field: 'effectiveDateFrom',},
     {headerName: 'Audit Action', field: 'auditAction',}
   ];
@@ -250,9 +383,10 @@ private sub:Subscription
     if (this.gridApi) {
       this.gridApi.setColumnDefs(this.currentColumnDefs);
       
-
+      this.gridApi.sizeColumnsToFit();
       
     }
+    
    
   }
 
@@ -260,22 +394,22 @@ private sub:Subscription
 
   showLog(toggleFlag) {
     this.toggleColumnDefs();
-    this.countryList$.next([]);
-    console.log('countryList', this.countryList$);
+    this.cityList$.next([]);
+    console.log('countryList', this.cityList$);
 
     if (toggleFlag) {
-        this.loadData(true)
+        this.loadCity(true)
             .then((records: any) => {
-                this.countryList$.next(records);
-                console.log('countryList', this.countryList$);
+                this.cityList$.next(records);
+                console.log('countryList', this.cityList$);
             })
             .catch(error => {
-                this.countryList$.next([]);
+                this.cityList$.next([]);
                 console.log('error', error);
             });
     }else{
-      this.countryList$.next([]);
-      this.loadData(false)
+      this.cityList$.next([]);
+      this.loadCity(false)
     }
   
 }
@@ -290,7 +424,7 @@ private sub:Subscription
     /****  new load data */ 
 
 
-    loadData(auditFlag:boolean) {
+    loadCity(auditFlag:boolean) {
       return new Promise((resolve, reject) => {
           const payload = {
               genericRequestEntity: {
@@ -302,7 +436,7 @@ private sub:Subscription
               }
           };
           this.loader.showSpinner('Loading data...');
-          this.countryListSubscription = this.dataService.retrieveData('countryservice/getAllCountry', payload)
+          this.countryListSubscription = this.dataService.retrieveData('cityservice/getAllCity/', payload)
               .subscribe(
                   (records: any) => {
                       this.loader.hideSpinner();
@@ -335,13 +469,13 @@ private sub:Subscription
   onGridReady(params) {
     this.gridApi = params.api;
     this.gridColumnApi = params.columnApi;
-    (document.getElementById("selectedOnly") as HTMLInputElement).checked =
-      true;
+    
 
+    this.loadCity(false); // Assuming loadData is asynchronous
 
-    // Load data into grid once it's fully initialized
-
-    this.loadData(false); // Assuming loadData is asynchronous
+    if (this.gridApi) {
+      this.gridApi.sizeColumnsToFit();
+    }
 
 
   }
@@ -360,6 +494,7 @@ private sub:Subscription
     const newItem = {
       entityBusinessName: '',
       entityBusinessShortCode: '',
+      
       isNew: true,
       activeFlag: 1,
       rowClass: 'ag-temporary-row', // Apply a custom class for styling
@@ -386,56 +521,84 @@ private sub:Subscription
     console.log(item.entityBusinessName)
     console.log(item.entityBusinessShortCode)
 
-    if (!item.entityBusinessName || !item.entityBusinessShortCode) {
+    if (!item.entitySuperParentBusinessName  || !item.entityParentBusinessName  || !item.entityBusinessName || !item.entityBusinessShortCode) {
       console.error('Error saving row: Mandatory Field is NULL');
       return;
     }
-    const payload = {
-      genericManipulationRequestEntity: {
-        companyID: 1,
-        createdBy: 1,
-        entityBusinessName: item.entityBusinessName,
-        entityBusinessShortCode: item.entityBusinessShortCode,
-        auditAction: 'C',
-        mode: 'W'
+    try {
+
+      const highlightedCountry = this.stateObjectList.find(country => 
+        country.entityParentBusinessName === item.entitySuperParentBusinessName
+       );
+       const selectedCountry=this.countryObjectList.find(country=>
+         country.entityBusinessName===highlightedCountry.entityParentBusinessName
+       )
+       
+       
+       const selectedState = this.stateObjectList.find(country => 
+         country.entityBusinessName === item.entityParentBusinessName
+        );
+  
+      const payload = {
+        genericChildManipulationRequestEntity: {
+          companyID: 1,
+          createdBy: 1,
+          entityBusinessName: item.entityBusinessName,
+          entityBusinessShortCode: item.entityBusinessShortCode,
+          entityParentBusinessID: selectedState.entityBusinessID,
+          entitySuperParentBusinessID: selectedCountry.entityBusinessID,
+          auditAction: 'C',
+          mode: 'W'
+        }
       }
-    }
-    console.log("item to be sent:", item);
-
-    // if (this.checkForDuplicates(item.entityBusinessName, item.entityBusinessShortCode)) {
-    //   alert('Duplicate country name or code found. Please enter unique values.');
-    //   return;
-    // }
-
-
-
-    this.dataService.saveRowData(item, 'countryservice/createEntity', payload).then(
-      (result) => {
-        item.isNew = false; // Mark row as saved
-        console.log('Row saved successfully');
-        this.isCreatingNewRow = false; // Reset the new row creation flag
-        this.isCheckBoxDisplaying=true;
-        this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
-        this.toasterService.showSuccess('Data saved successfully');
-        this.loadData(false);
-      },
-      error => {
-        console.error('Error saving row:', error);
+      console.log("item to be sent:", item);
+  
+      // if (this.checkForDuplicates(item.entityBusinessName, item.entityBusinessShortCode)) {
+      //   alert('Duplicate country name or code found. Please enter unique values.');
+      //   return;
+      // }
+  
+  
+  this.loader.showSpinner('Data is being Saved');
+      this.dataService.saveRowData(item, 'cityservice/createSuperChildEntity/', payload).then(
+        (result) => {
+          item.isNew = false; // Mark row as saved
+          console.log('Row saved successfully');
+          this.isCreatingNewRow = false; // Reset the new row creation flag
+          this.isCheckBoxDisplaying=true;
+          this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
+          this.loader.hideSpinner();
+          this.toasterService.showSuccess('Data saved successfully');
+          this.loadCity(false);
+        },
+        error => {
+          console.error('Error saving row:', error);
+          this.loader.hideSpinner();
+          this.toasterService.showError('Not saved')
+        } 
+      ).catch((errorMessage) => {
+        console.log('error ..')
+        this.loader.hideSpinner()
         this.toasterService.showError('Not saved')
-      } 
-    ).catch((errorMessage) => {
-      console.log('error ..')
-      this.toasterService.showError('Not saved')
-    });
+      });
+      
+  
+      // this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
+      // this.loadData();
+      this.cdr.markForCheck();  // Manually trigger change detection
+      this.clickedOnCreateButton = false; // to enable create button again
+      // this.gridApi.refreshCells({
+  
+      //   force: true,
+      // });
+      
+    } catch (error) {
+      this.loader.hideSpinner()
+      this.toasterService.showError(error)
+    }
 
-    // this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
-    // this.loadData();
-    this.cdr.markForCheck();  // Manually trigger change detection
-    this.clickedOnCreateButton = false; // to enable create button again
-    // this.gridApi.refreshCells({
 
-    //   force: true,
-    // });
+    
   }
 
 
@@ -483,13 +646,14 @@ private sub:Subscription
       //alert('Value is unchanged')
       return
     }
-    const updatedRow = {
-      genericManipulationRequestEntity:
-      {
+    const payload = {
+      genericChildManipulationRequestEntity: {
         entityID: item.entityID,
         entityBusinessID: item.entityBusinessID,
         entityBusinessName: item.entityBusinessName,
         entityBusinessShortCode: item.entityBusinessShortCode,
+        entityParentBusinessID: item.entityParentBusinessID,
+        entitySuperParentBusinessID: item.entitySuperParentBusinessID,
         auditAction: 'U',
         companyID: 1,
         createdBy: 1,
@@ -497,7 +661,7 @@ private sub:Subscription
       }
     }
     this.loader.showSpinner('Data is being Updated');
-    this.dataService.saveRowData(item, 'countryservice/updateEntity', updatedRow).then(
+    this.dataService.saveRowData(item, 'cityservice/updateSuperChildEntity/', payload).then(
       (response: any) => {
         if (response && response.entityID) item.entityID = response.entityID
         this.existingName = response.entityBusinessName
@@ -516,15 +680,83 @@ private sub:Subscription
   }
 
 
+  editDropDown(item) {
+   
+
+   // if (this.existingName === item.entityBusinessName && this.existingShortCode === item.entityBusinessShortCode) {
+   //   this.toasterService.showError('Unchanged Data')
+   //   //alert('Value is unchanged')
+   //   return
+   // }
+    // Find the corresponding entityParentBusinessID
+
+    try {
+      const highlightedCountry = this.stateObjectList.find(country => 
+        country.entityParentBusinessName === item.entitySuperParentBusinessName
+       );
+       const selectedCountry=this.countryObjectList.find(country=>
+         country.entityBusinessName===highlightedCountry.entityParentBusinessName
+       )
+       
+       
+       const selectedState = this.stateObjectList.find(country => 
+         country.entityBusinessName === item.entityParentBusinessName
+        );
+
+
+        const payload = {
+          genericChildManipulationRequestEntity: {
+            entityID: item.entityID,
+            entityBusinessID: item.entityBusinessID,
+            entityBusinessName: item.entityBusinessName,
+            entityBusinessShortCode: item.entityBusinessShortCode,
+            entityParentBusinessID: selectedState.entityBusinessID,
+            entitySuperParentBusinessID: selectedCountry.entityBusinessID,
+            auditAction: 'U',
+            companyID: 1,
+            createdBy: 1,
+            mode: 'W'
+          }
+        }
+        
+        console.log('item',item)
+        this.loader.showSpinner('Data is being Updated');
+        this.dataService.saveRowData(item, 'cityservice/updateSuperChildEntity/', payload).then(
+          (response: any) => {
+            if (response && response.entityID) item.entityID = response.entityID
+            this.existingName = response.entityBusinessName
+            this.existingShortCode = response.entityBusinessShortCode
+            console.log('Row posted successfully!', response);
+            this.loader.hideSpinner();
+            this.toasterService.showSuccess('Data is updated')
+            //alert('Row updated successfully!');
+          },
+          error => {
+            console.error('Error posting row data', error);
+            this.loader.hideSpinner();
+            this.toasterService.showError('Data is not updated')
+          }
+        );
+      
+    } catch (error) {
+      this.toasterService.showError(error)
+    }
+
+
+
+ }
+
 
   activateRow(item) {
 
     const payload = {
-      genericManipulationRequestEntity: {
+      genericChildManipulationRequestEntity: {
         entityID: item.entityID,
         entityBusinessID: item.entityBusinessID,
         entityBusinessName: item.entityBusinessName,
         entityBusinessShortCode: item.entityBusinessShortCode,
+        entityParentBusinessID: item.entityParentBusinessID,
+        entitySuperParentBusinessID: item.entitySuperParentBusinessID,
         auditAction: 'A',
         companyID: 1, //auth.service
         createdBy: 1, //auth.service
@@ -532,7 +764,7 @@ private sub:Subscription
       }
     }
     this.loader.showSpinner('Data is being Activated')
-    this.dataService.saveRowData(item, 'countryservice/activateEntity', payload).then(
+    this.dataService.saveRowData(item, 'cityservice/activateSuperChildEntity', payload).then(
       (result: any) => {
         console.log('activated successfully', result)
         if (result && result.entityID) item.entityID = result.entityID
@@ -564,31 +796,15 @@ private sub:Subscription
 
   deactivateRow(item) {
     
-    const countries = this.stateCountries;
     
-    // if (this.stateCountries.includes(item.entityBusinessName)) {
-    //   this.toasterService.showError(
-    //     `${item.entityBusinessName} is already present in the State table and cannot be deactivated.`
-    //   );
-    //   return;
-    // }
-
-    console.log(`Deactivating country:`,countries);
-  
-
-      
-      
-    
-    
-      
-    
-
     const payload = {
-      genericManipulationRequestEntity: {
+      genericChildManipulationRequestEntity: {
         entityID: item.entityID,
         entityBusinessID: item.entityBusinessID,
         entityBusinessName: item.entityBusinessName,
         entityBusinessShortCode: item.entityBusinessShortCode,
+        entityParentBusinessID: item.entityParentBusinessID,
+        entitySuperParentBusinessID: item.entitySuperParentBusinessID,
         auditAction: 'D',
         companyID: 1, //auth.service
         createdBy: 1, //auth.service
@@ -596,7 +812,8 @@ private sub:Subscription
       }
     }
     this.loader.showSpinner('Data is being Deactivated')
-    this.dataService.saveRowData(item, 'countryservice/deactivateEntity', payload).then(
+    console.log('item',item)
+    this.dataService.saveRowData(item, 'cityservice/deactivateSuperChildEntity', payload).then(
       (result: any) => {
         console.log('deactivated successfully', result)
         if (result && result.entityID) item.entityID = result.entityID
@@ -605,12 +822,9 @@ private sub:Subscription
         item.activeFlag = 0; // Update the activeFlag or other necessary fields
         this.gridApi.applyTransaction({ update: [item] }); // Dynamically update the row
         //this.gridApi.refreshCells({ rowNodes: [item], force: true });
-        this.cdr.detectChanges(); // Ensure Angular detects the changes
+        //this.cdr.detectChanges(); // Ensure Angular detects the changes
         this.loader.hideSpinner();
         this.toasterService.showSuccess('Data is now Deactivated')
-
-
-
       },
       (error) => {
         console.log('deactivation error', error)
@@ -639,6 +853,137 @@ private sub:Subscription
   }
 
 
+  getCountry(detailFlag = false) {
+    return new Promise((resolve, reject) => {
+      
+      const payload = {
+        genericRequestEntity: {
+          companyID: 1,
+          createdBy: 1,
+         // entityBusinessID: null,
+          mode: 'W',
+          detailFlag:detailFlag,
+          dropDown: false
+        }
+      }
+      this.dataService.retrieveData('countryservice/getAllCountry',payload).subscribe((records: any) => {
+        
+        if (records.statusCode === "200" || records.statusCode === "300") {
+          //records.responseList = records.responseList == null ? [] : records.responseList;  // records.responseList.entityBusinessID,
+          records.responseList.forEach((items)=>{
+            if(items.activeFlag===1){
+              this.countryList.push(items.entityBusinessName)
+              
+              this.countryObjectList = records.responseList.map((item: any) => ({
+                entityBusinessName: item.entityBusinessName,
+                entityBusinessID: item.entityBusinessID
+              }));
+            }
+          })
+          this.getState(records.responseList.entityBusinessID,false)
+          console.log('country list',this.countryList, records, )
+          resolve(records.responseList);
+        } else {
+          reject(records.errorMessage);
+          console.log(' no country list',this.countryList,records)
+        }
+      }, (error) => {
+        this.loader.hideSpinner();
+        reject('Either Internet is not working or facing internal server issue')
+      })
+    })
+  }
+
+  getState(countryID, detailFlag = false) {
+    return new Promise((resolve, reject) => {
+     
+      const payload = {
+        genericRequestEntity: {
+          companyID: 1,
+          createdBy: 1,
+          entityBusinessID: countryID,
+          mode: 'W',
+          detailFlag,
+          dropDown: false,
+        }
+      }
+       this.dataService.retrieveData( 'stateservice/getAllState/',payload).subscribe((records: any) => {
+       
+        if (records.statusCode === "200" || records.statusCode === "300") {
+          records.responseList = records.responseList == null ? [] : records.responseList;
+          records.responseList.forEach((items)=>{
+            if(items.activeFlag===1){
+             // this.stateList.push(items.entityBusinessName)
+              this.stateObjectList = records.responseList.map((item: any) => ({
+                entityBusinessName: item.entityBusinessName,
+                entityBusinessID: item.entityBusinessID,
+                entityParentBusinessName: item.entityParentBusinessName,
+                entityParentBusinessId: item.entityParentBusinessId,
+
+              }));
+
+            }
+          })
+          console.log('state list',this.stateObjectList)
+          resolve(records.responseList);
+        } else {
+          reject(records.errorMessage);
+        }
+      }, (error) => {
+        
+        reject('Either Internet is not working or facing internal server issue')
+      })
+    })
+  }
+
+
+  fetchState(parentName){
+    const sList=[]
+    this.stateObjectList.forEach((column) =>{
+      if(column.entityParentBusinessName ===parentName ){
+        sList.push(column.entityBusinessName)
+      }
+    })
+   
+    return sList
+  }
+
+  /****s**/
+
+  validateEntityRelationship(rowData, columnField, newValue) {
+    // Check if the column is entitySuperParentBusinessName
+    if(rowData.entitySuperParentBusinessName='') return false;
+    if (columnField === 'entitySuperParentBusinessName') {
+      // Check if the corresponding entityParentBusinessName is compatible with the new value
+      const currentParentBusinessName = rowData.entityParentBusinessName;
+      let bool=false;
+      // Your specific validation logic
+      // For example:
+      //const validRelationships = this.fetchState(columnField); // Method to get allowed relationships
+      this.stateObjectList.forEach((column) =>{
+        if(column.entityParentBusinessName ===newValue){
+          if(column.entityBusinessName===currentParentBusinessName) bool=true;
+        }
+      })
+
+      if(!bool) return false;
+      
+    }
+    
+    // If not the specific column or no validation needed, return true
+    return true;
+  }
+  
+  // Optional method to show warnings
+  showWarning(message: string) {
+    // Implement your warning display logic
+    // Could be a toast, alert, or setting a warning message
+  }
+
+
+   /****e**/
+
+
   //making this component the parent one
   public gridOptions = {
     context: {
@@ -650,25 +995,16 @@ private sub:Subscription
     },
     getRowHeight: params => {
       if(this.logView){
-        return  40
+        return  30
       }
       return params.data.isNew ? 100 : 50; // Set 80px for temporary row, 40px for normal rows
     },
 
     getRowStyle: params => {
-       // Check if logView is true
-    if (this.logView) {
-      // Apply different background color for odd rows
-      if (params.node.rowIndex % 2 !== 0) {
-        return { background: '#f0f0f0' }; // Example: Light gray for odd rows
-      }
-      return {}; // Default background for even rows
-    }
+   
       if (params.data && params.data.isNew) {
         // return { background: '#f0f8ff' }; // Light blue background for new rows
-        //return { background: '#c1b3b3' };
-
-        return {background: '#1AFF0019'}
+        return { background: '#1AFF0019' };
       }
       return null; // Default style for other rows
     },
@@ -686,7 +1022,7 @@ private sub:Subscription
 
     if (format.toLowerCase() === 'excel') {
       // Add Excel-specific formatting options
-      exportParams.fileName = 'CountryList.xlsx'; // Optional: Customize file name
+      exportParams.fileName = 'CityList.xlsx'; // Optional: Customize file name
       exportParams.sheetName = 'Sheet1';   // Optional: Set sheet name
       this.gridApi.exportDataAsExcel({
         onlySelected: (
@@ -696,7 +1032,7 @@ private sub:Subscription
       
     } else if (format.toLowerCase() === 'csv') {
       // Add CSV-specific formatting options
-      exportParams.fileName = 'CountryList.csv'; // Optional: Customize file name
+      exportParams.fileName = 'CityList.csv'; // Optional: Customize file name
       exportParams.columnSeparator = ','; // Optional: Customize separator
       this.gridApi.exportDataAsCsv(exportParams);
     } else {
@@ -713,7 +1049,7 @@ private sub:Subscription
       const rowValues = [row.entityBusinessName, row.entityBusinessShortCode, row.createdByUser]; // Extract values manually or dynamically
       gridRowData.push(rowValues); // Push the array of values into gridRowData
     });
-    generatePDF(gridRowData)
+   // generatePDF(gridRowData)
     this.toasterService.showSuccess('PDF is downloaded')
   }
 
