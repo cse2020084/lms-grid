@@ -165,7 +165,7 @@ export class CustomCountryDropdownComponent implements ICellEditorAngularComp {
        document.addEventListener('mousedown', this.handleOutsideClick);
 
 
-       if(this.isTemporaryRow &&  params.value===''){
+       if(this.isTemporaryRow ){
         // Update parent component with column-specific warning
         if (this.params?.context?.componentParent?.updateColumnWarning) {
           const columnField = this.params.column.getColId();

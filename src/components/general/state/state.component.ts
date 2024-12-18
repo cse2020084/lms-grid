@@ -299,7 +299,7 @@ export class StateComponent implements OnInit {
 
 
 
-  /*******END*******/
+  /******* showlog END*******/
 
 
   loadState(auditflag:boolean){
@@ -857,14 +857,29 @@ export class StateComponent implements OnInit {
 
   onBtPrint() {
     const gridRowData: any[] = [];
-    console.log(this.gridApi)
-    // Loop through each row in the grid // if you use gridApi instead of rowdata, then you would also have all updates
-    this.rowData.forEach((row) => {
-      const rowValues = [row.entityBusinessName, row.entityBusinessShortCode, row.createdByUser]; // Extract values manually or dynamically
-      gridRowData.push(rowValues); // Push the array of values into gridRowData
+    const selectedHeaders: string[] = [];
+    const selectedColumns: string[] = [
+      'entityParentBusinessName', 
+      'entityBusinessName', 
+      'entityBusinessShortCode', 
+      'createdByUser'
+    ];
+  
+    // Loop through column definitions to get matching headers
+    this.columnDefs.forEach((column) => {
+      if (selectedColumns.includes(column.field)) {
+        selectedHeaders.push(column.headerName);
+      }
     });
-    generatePDF(gridRowData)
-    this.toasterService.showSuccess('PDF is downloaded')
+  
+    // Loop through rows and extract only selected columns
+    this.rowData.forEach((row) => {
+      const rowValues = selectedColumns.map(colName => row[colName]);
+      gridRowData.push(rowValues);
+    });
+  
+    generatePDF(gridRowData, selectedHeaders,'State');
+    this.toasterService.showSuccess('PDF is downloaded');
   }
 
 
@@ -881,7 +896,7 @@ export class StateComponent implements OnInit {
   public paginationNumberFormatter: (
     params: PaginationNumberFormatterParams
   ) => string = function (params) {
-    return '[' + params.value.toLocaleString() + ']';
+    return params.value.toLocaleString();
   };
 
   onPageSizeChanged() {

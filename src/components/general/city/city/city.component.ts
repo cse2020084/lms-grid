@@ -7,13 +7,14 @@ import { ClearableFloatingFilterComponent } from 'src/app/component/clearable-fl
 //import {generatePDF} from '../../../script/jspdf';
 import 'ag-grid-enterprise';
 
-//import { generatePDF } from '../script/jspdf'
+import {generatePDF} from '../../../../script/jspdf';
 import { LoaderService } from 'src/app/services/loader.service';
 import { ToasterService } from 'src/app/toaster/toaster.service';
 import { StateService } from 'src/components/services/state.service';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { CustomCountryDropdownComponent } from 'src/app/component/custom-country-dropdown/custom-country-dropdown.component';
+
 
 interface CustomColDef extends ColDef {
   // Define your custom properties here
@@ -44,6 +45,7 @@ export class CityComponent implements OnInit {
     private stateService:StateService,
     private route: ActivatedRoute,
   ) {
+    
      
    }
 
@@ -494,7 +496,8 @@ private sub:Subscription
     const newItem = {
       entityBusinessName: '',
       entityBusinessShortCode: '',
-      
+      entityParentBusinessName:'',
+      entitySuperParentBusinessName:'',
       isNew: true,
       activeFlag: 1,
       rowClass: 'ag-temporary-row', // Apply a custom class for styling
@@ -872,12 +875,12 @@ private sub:Subscription
           //records.responseList = records.responseList == null ? [] : records.responseList;  // records.responseList.entityBusinessID,
           records.responseList.forEach((items)=>{
             if(items.activeFlag===1){
-              this.countryList.push(items.entityBusinessName)
+              // this.countryList.push(items.entityBusinessName)
               
-              this.countryObjectList = records.responseList.map((item: any) => ({
-                entityBusinessName: item.entityBusinessName,
-                entityBusinessID: item.entityBusinessID
-              }));
+              // this.countryObjectList = records.responseList.map((item: any) => ({
+              //   entityBusinessName: item.entityBusinessName,
+              //   entityBusinessID: item.entityBusinessID
+              // }));
             }
           })
           this.getState(records.responseList.entityBusinessID,false)
@@ -912,17 +915,30 @@ private sub:Subscription
         if (records.statusCode === "200" || records.statusCode === "300") {
           records.responseList = records.responseList == null ? [] : records.responseList;
           records.responseList.forEach((items)=>{
+            console.log('ActivedFlag', items.activeFlag )
             if(items.activeFlag===1){
              // this.stateList.push(items.entityBusinessName)
-              this.stateObjectList = records.responseList.map((item: any) => ({
+             
+              this.stateObjectList = records.responseList
+              .filter((item: any) => item.activeFlag === 1)
+              .map((item: any) => ({
                 entityBusinessName: item.entityBusinessName,
                 entityBusinessID: item.entityBusinessID,
                 entityParentBusinessName: item.entityParentBusinessName,
                 entityParentBusinessId: item.entityParentBusinessId,
+                
+              }));
 
+
+              this.countryList.push(items.entityParentBusinessName)
+              
+              this.countryObjectList = records.responseList.map((item: any) => ({
+                entityBusinessName: item.entityParentBusinessName,
+                entityBusinessID: item.entityParentBusinessID
               }));
 
             }
+            console.log('activeFlag', items.activeFlag )
           })
           console.log('state list',this.stateObjectList)
           resolve(records.responseList);
@@ -944,6 +960,8 @@ private sub:Subscription
         sList.push(column.entityBusinessName)
       }
     })
+
+    console.log('slist',sList)
    
     return sList
   }
@@ -1043,14 +1061,30 @@ private sub:Subscription
 
   onBtPrint() {
     const gridRowData: any[] = [];
-    console.log(this.gridApi)
-    // Loop through each row in the grid // if you use gridApi instead of rowdata, then you would also have all updates
-    this.rowData.forEach((row) => {
-      const rowValues = [row.entityBusinessName, row.entityBusinessShortCode, row.createdByUser]; // Extract values manually or dynamically
-      gridRowData.push(rowValues); // Push the array of values into gridRowData
+    const selectedHeaders: string[] = [];
+    const selectedColumns: string[] = [
+      'entitySuperParentBusinessName', 
+      'entityParentBusinessName', 
+      'entityBusinessName', 
+      'entityBusinessShortCode', 
+      'createdByUser'
+    ];
+  
+    // Loop through column definitions to get matching headers
+    this.columnDefs.forEach((column) => {
+      if (selectedColumns.includes(column.field)) {
+        selectedHeaders.push(column.headerName);
+      }
     });
-   // generatePDF(gridRowData)
-    this.toasterService.showSuccess('PDF is downloaded')
+  
+    // Loop through rows and extract only selected columns
+    this.rowData.forEach((row) => {
+      const rowValues = selectedColumns.map(colName => row[colName]);
+      gridRowData.push(rowValues);
+    });
+  
+    generatePDF(gridRowData, selectedHeaders,'City');
+    this.toasterService.showSuccess('PDF is downloaded');
   }
 
 
@@ -1063,7 +1097,7 @@ private sub:Subscription
   public paginationNumberFormatter: (
     params: PaginationNumberFormatterParams
   ) => string = function (params) {
-    return '[' + params.value.toLocaleString() + ']';
+    return params.value.toLocaleString();
   };
 
   onPageSizeChanged() {

@@ -14,21 +14,23 @@ import { DataService } from 'src/app/services/data.service';
  </ng-container>
  <ng-template #defaultTemplate>
   <!-- <button  mat-button (click)="edit()" [disabled]="params.data.activeFlag !== 1 || this.params.context.compon Parent.isCreatingNewRow"><i class="bi bi-pencil-square" style="font-size:1.5rem"></i></button> -->
-   <button  mat-button (click)="status()" [ngClass]="{ active: params.data.activeFlag === 1 ,inActive:params.data.activeFlag !== 1}"  [disabled]="this.params.context.componentParent.isCreatingNewRow" > <img *ngIf="params.data.activeFlag ===1" class="fas fa-ban" src="../../../assets/bann.svg"> <i *ngIf="params.data.activeFlag !==1" class="bi bi-check-circle-fill"></i></button>
+   <button  mat-button (click)="status()" [ngClass]="{ active: params.data.activeFlag === 1 ,inActive:params.data.activeFlag !== 1}"  [disabled]="this.params.context.componentParent.isCreatingNewRow" > <img *ngIf="params.data.activeFlag ===1" class="fas fa-ban" src="../../../assets/deactivate.svg">  <img *ngIf="params.data.activeFlag !==1" class="fas fa-ban" src="../../../assets/activate.svg"> </button>
  </ng-template>
 `, 
 
 styles: [`
    .inActive{
     color:green;
-    font-size:1.4rem;
+    font-size:0.5rem;
   }
   .active {
    color:rgb(211, 47, 47);
-   font-size:1.1rem;
+   font-size:0.2rem;
 }
   .fas{
-  width:70%;
+  max-width:20px;
+  max-height:20px;
+  padding:0;
   
 }
 `]
@@ -120,6 +122,9 @@ export class ActionComponent implements OnInit,ICellRendererAngularComp {
 
 // <i *ngIf="params.data.activeFlag === 1" class="bi bi-slash-circle-fill"></i>
 //  <mat-icon *ngIf="params.data.activeFlag === 1">block</mat-icon>
+
+// activate button
+// <i *ngIf="params.data.activeFlag !==1" class="bi bi-check-circle-fill"></i>
 
 
 //    <button  mat-button (click)="status()" [ngClass]="{ active: params.data.activeFlag === 1 ,inActive:params.data.activeFlag !== 1}"  [disabled]="this.params.context.componentParent.isCreatingNewRow" > <i *ngIf="params.data.activeFlag ===1" class="bi bi-slash-circle-fill"></i> <i *ngIf="params.data.activeFlag !==1" class="bi bi-check2-circle"></i></button>
