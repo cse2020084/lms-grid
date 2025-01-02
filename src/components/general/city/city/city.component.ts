@@ -420,7 +420,7 @@ private sub:Subscription
 
   /*******END*******/
 
-  
+     
 
 
     /****  new load data */ 
@@ -857,13 +857,13 @@ private sub:Subscription
 
 
   getCountry(detailFlag = false) {
-    return new Promise((resolve, reject) => {
+    
       
       const payload = {
         genericRequestEntity: {
           companyID: 1,
           createdBy: 1,
-         // entityBusinessID: null,
+          entityBusinessID: null,
           mode: 'W',
           detailFlag:detailFlag,
           dropDown: false
@@ -875,30 +875,31 @@ private sub:Subscription
           //records.responseList = records.responseList == null ? [] : records.responseList;  // records.responseList.entityBusinessID,
           records.responseList.forEach((items)=>{
             if(items.activeFlag===1){
-              // this.countryList.push(items.entityBusinessName)
+               this.countryList.
+               push(items.entityBusinessName)
               
-              // this.countryObjectList = records.responseList.map((item: any) => ({
-              //   entityBusinessName: item.entityBusinessName,
-              //   entityBusinessID: item.entityBusinessID
-              // }));
+              this.countryObjectList = records.responseList.map((item: any) => ({
+                entityBusinessName: item.entityBusinessName,
+                entityBusinessID: item.entityBusinessID
+              }));
             }
           })
           this.getState(records.responseList.entityBusinessID,false)
-          console.log('country list',this.countryList, records, )
-          resolve(records.responseList);
+          console.log('country list',this.countryList, records.responseList.entityBusinessID, )
+         
         } else {
-          reject(records.errorMessage);
+          
           console.log(' no country list',this.countryList,records)
         }
       }, (error) => {
         this.loader.hideSpinner();
-        reject('Either Internet is not working or facing internal server issue')
+        
       })
-    })
+    
   }
 
   getState(countryID, detailFlag = false) {
-    return new Promise((resolve, reject) => {
+    
      
       const payload = {
         genericRequestEntity: {
@@ -914,8 +915,9 @@ private sub:Subscription
        
         if (records.statusCode === "200" || records.statusCode === "300") {
           records.responseList = records.responseList == null ? [] : records.responseList;
+          console.log('ActivedFlag', records )
           records.responseList.forEach((items)=>{
-            console.log('ActivedFlag', items.activeFlag )
+           
             if(items.activeFlag===1){
              // this.stateList.push(items.entityBusinessName)
              
@@ -930,26 +932,27 @@ private sub:Subscription
               }));
 
 
-              this.countryList.push(items.entityParentBusinessName)
+              //  this.countryList.
+              //  push(items.entityParentBusinessName)
               
-              this.countryObjectList = records.responseList.map((item: any) => ({
-                entityBusinessName: item.entityParentBusinessName,
-                entityBusinessID: item.entityParentBusinessID
-              }));
+              // this.countryObjectList = records.responseList.map((item: any) => ({
+              //   entityBusinessName: item.entityParentBusinessName,
+              //   entityBusinessID: item.entityParentBusinessID
+              // }));
 
             }
             console.log('activeFlag', items.activeFlag )
           })
           console.log('state list',this.stateObjectList)
-          resolve(records.responseList);
+          
         } else {
-          reject(records.errorMessage);
+          
         }
       }, (error) => {
         
-        reject('Either Internet is not working or facing internal server issue')
+        
       })
-    })
+    
   }
 
 

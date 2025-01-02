@@ -17,6 +17,8 @@ import { LoadingComponent } from './component/loading/loading.component';
 import { ToasterComponent } from './toaster/toaster/toaster.component';
 import { CustomCountryDropdownComponent } from './component/custom-country-dropdown/custom-country-dropdown.component';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { ButtonCellRendererComponent } from './component/button-renderer/button-cell-renderer/button-cell-renderer.component';
+import { DropdownCellEditorComponent } from './component/dropdown-cell-editor/dropdown-cell-editor/dropdown-cell-editor.component';
 
 
 
@@ -30,6 +32,8 @@ import { NgSelectModule } from '@ng-select/ng-select';
     // ClearableFloatingFilterComponent,
     LoadingComponent,
     ToasterComponent,
+    ButtonCellRendererComponent,
+    DropdownCellEditorComponent,
     //CustomCountryDropdownComponent,
     
   ],

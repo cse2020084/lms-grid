@@ -1,12 +1,12 @@
-// /* Container styling */
-:host {
-   display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    background-color: #f5f5f5;
-    min-width: 1200px;
-  }
+/* Container styling */
+// :host {
+//    display: flex;
+//     flex-direction: column;
+//     align-items: center;
+//     padding: 20px;
+//     background-color: #f5f5f5;
+//      min-width: 100%;
+//   }
   
 //   /* Button styling */
 //   button {
@@ -215,23 +215,23 @@
 // // for new cell renderer
 
 /* Add to your component's styles or global styles */
-:host ::ng-deep .ag-cell {
-  overflow: visible !important;
-}
+// :host ::ng-deep .ag-cell {
+//   overflow: visible !important;
+// }
 
-:host ::ng-deep .ag-row {
-  margin-bottom: 20px !important;
-  z-index: 0;
-}
+// :host ::ng-deep .ag-row {
+//   margin-bottom: 20px !important;
+//   z-index: 0;
+// }
 
-:host ::ng-deep .ag-cell:has(.warning-message) {
-  z-index: 2;
-}
+// :host ::ng-deep .ag-cell:has(.warning-message) {
+//   z-index: 2;
+// }
 
-:host ::ng-deep .custom-cell-renderer {
-  position: relative;
-  height: 100%;
-}
+// :host ::ng-deep .custom-cell-renderer {
+//   position: relative;
+//   height: 100%;
+// }
 
  
   

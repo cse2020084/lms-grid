@@ -1,0 +1,62 @@
+<div class="breadcrumb-wrapper">
+    <app-breadcrumb childLink="General Master" subchildLink="Designation"></app-breadcrumb>
+  </div>
+  
+  <div class="above-grid-bar">
+  
+  <div class="format-option-bar">
+    <label class="option" for="selectedOnly"><input id="selectedOnly" type="checkbox"  >Selected Rows Only</label>
+  
+    <button class="import-btn" style="background: none; color: black;" (click)="getDownload('excel')" ><i
+        class="bi bi-file-earmark-excel-fill" style="font-size: 2rem;"></i></button>
+    <button class="import-btn" style="background: none; color: black;"  (click)="getDownload('excel')"><i
+        class="bi bi-filetype-csv" style="font-size: 2rem;"></i></button>
+    <button class="import-btn" style="background: none; color: black;" (click)="onBtPrint()"><i
+        class="bi bi-filetype-pdf" style="font-size: 2rem;"></i></button>
+        
+        <mat-slide-toggle class="lms-matslidetoggle" color="primary"
+        (change)="showLog($event.checked)" >
+        
+    </mat-slide-toggle>
+    <span class="remaining-space"></span>
+    <button *ngIf="this.currentColumnDefs !== this.logDefs"  mat-raised-button color="primary" (click)="addNewRow()" [disabled]="isAnyRowEditing() " style="padding: 0.5vh 1.5vw; ">Add</button>
+  </div>
+  </div>
+  
+  
+  <div class="grid-container">
+    <ag-grid-angular 
+      id="myGrid"
+      style="width: 100%; height: 100%;"
+      class="ag-theme-alpine grid-scrollable" 
+      [rowData]="rowData" 
+      [columnDefs]="columnDefs"
+      [defaultColDef]="defaultColDef"
+      [frameworkComponents]="frameworkComponents"
+      (gridReady)="onGridReady($event)"
+      [gridOptions]="gridOptions"
+      [singleClickEdit]="true"
+      [suppressHorizontalScroll]="false"
+      [context]="{ componentParent: this }"
+      domLayout="'normal'"
+      [pagination]="true"
+      [paginationPageSize]="paginationPageSize" [paginationNumberFormatter]="paginationNumberFormatter"
+    >
+      </ag-grid-angular>
+      <div class="pagination-number-selector">
+        Rows Number:
+        <select (change)="onPageSizeChanged()" id="page-size">
+          <option value="10" selected="">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+  </div>
+  
+  <!-- 
+    [defaultColDef]="defaultColDef" [frameworkComponents]="frameworkComponents"
+    (gridReady)="onGridReady($event)" [gridOptions]="gridOptions" [suppressClickEdit]="false" [pagination]="true"
+    [paginationPageSize]="paginationPageSize" [paginationNumberFormatter]="paginationNumberFormatter"
+    rowSelection="multiple" [singleClickEdit]="true" [context]="{ componentParent: this }" domLayout="autoHeight"  [suppressHorizontalScroll]="false" -->
+  

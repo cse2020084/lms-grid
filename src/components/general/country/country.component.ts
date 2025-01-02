@@ -408,7 +408,7 @@ private sub:Subscription
     // }
 
 
-
+    this.loader.showSpinner('Data is being Saved');
     this.dataService.saveRowData(item, 'countryservice/createEntity', payload).then(
       (result) => {
         item.isNew = false; // Mark row as saved
@@ -416,15 +416,18 @@ private sub:Subscription
         this.isCreatingNewRow = false; // Reset the new row creation flag
         this.isCheckBoxDisplaying=true;
         this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
+        this.loader.hideSpinner();
         this.toasterService.showSuccess('Data saved successfully');
         this.loadData(false);
       },
       error => {
         console.error('Error saving row:', error);
+        this.loader.hideSpinner();
         this.toasterService.showError('Not saved')
       } 
     ).catch((errorMessage) => {
       console.log('error ..')
+      this.loader.hideSpinner();
       this.toasterService.showError('Not saved')
     });
 

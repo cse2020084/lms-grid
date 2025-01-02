@@ -1,0 +1,132 @@
+.grid-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden; /* Ensure no unwanted scrollbars outside the grid */
+  }
+  
+  /* ag-grid styling */
+  #myGrid {
+    width: 100%;
+    height: 100%;
+  
+    .ag-theme-alpine {
+      height: 100%;
+      overflow-x: auto; /* Enable horizontal scrolling */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow */
+      border-radius: 8px; /* Rounded corners for modern look */
+      background-color: #ffffff; /* White background for clarity */
+    }
+  
+    /* Adjust horizontal scrolling behavior */
+    .ag-body-horizontal-scroll {
+      overflow-x: auto !important;
+    }
+  
+    /* Ensure the grid is scrollable */
+    .ag-body {
+      overflow-x: auto !important;
+      overflow-y: auto; /* Keeps vertical scrolling intact */
+    }
+  }
+  
+  /* Responsive grid adjustments */
+  @media (max-width: 768px) {
+    #myGrid {
+      .ag-theme-alpine {
+        height: 300px; /* Adjust height for smaller screens */
+      }
+    }
+  }
+
+
+   /* Button styling */
+   button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    border-radius: 4px;  
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  button:hover {
+    background-color: #0056b3;
+  }
+  
+  button:disabled {
+    background-color: #c0c0c0;
+    cursor: not-allowed;
+  }
+
+
+  // for pagination selector
+   
+ 
+  .above-grid-bar{
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: flex-end;
+    
+
+    .pagination-number-selector {  
+      // opacity: 0.7; /* Reduce opacity (0 = fully transparent, 1 = fully opaque) */
+      font-size: 2rex; 
+      margin-right: 60%;
+      background: none;
+      margin-bottom: 3vh;
+      
+      
+    }
+
+    .format-option-bar{
+      display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    .remaining-space{
+     margin-right:2vw
+   }
+    }
+  }
+
+  
+     
+    
+
+    .pagination-number-selector {  
+      // opacity: 0.7; /* Reduce opacity (0 = fully transparent, 1 = fully opaque) */
+      font-size: 2rex; 
+      font-weight: bold;
+      margin-right: 60%;
+      background: none;
+      margin-bottom: 3vh;
+      
+      
+    }
+    
+  
+
+  .inactive {
+    background-color: rgba(194, 13, 13, 0.5); /* Greyish background */
+    color: rgba(128, 128, 128, 0.8); /* Dimmed text */
+  }
+  
+  .inactive .ag-cell {
+    color: inherit; /* Ensure cells inherit the row text color */
+  }
+  
+  .inactive button {
+    pointer-events: none; /* Disable interactions */
+    opacity: 0.5; /* Dim buttons as well */
+  }
+  
+  .deactivated-row {
+    background-color: #661414 !important; /* Light grey */
+    pointer-events: none; /* Disable clicking */
+    opacity: 0.6; /* Optional for faded effect */
+}

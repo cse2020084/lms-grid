@@ -23,6 +23,11 @@ import { StateService } from '../services/state.service';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle'
 import { SharedModule } from 'src/shared/shared.module';
 import { CityComponent } from './city/city/city.component';
+import { DepartmentComponent } from './department/department/department.component';
+import { SubDepartmentComponent } from './sub-department/sub-department/sub-department.component';
+import { RoleComponent } from './role/role.component';
+import { DesignationComponent } from './designation/designation.component';
+import { SalutationComponent } from './salutation/salutation.component';
 
 
 @NgModule({
@@ -35,6 +40,11 @@ import { CityComponent } from './city/city/city.component';
     StateComponent,
     CustomCountryDropdownComponent,
     CityComponent,
+    DepartmentComponent,
+    SubDepartmentComponent,
+    RoleComponent,
+    DesignationComponent,
+    SalutationComponent,
     
   ],
   imports: [

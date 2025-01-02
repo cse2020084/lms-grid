@@ -293,6 +293,9 @@ export class StateComponent implements OnInit {
     }else{
       this.statesList$.next([]);
       this.loadState(false)
+      .then((records: any) => {
+        this.statesList$.next(records);
+    })
     }
   
 }
@@ -342,15 +345,16 @@ export class StateComponent implements OnInit {
     
     //this.stateService.setCountries(this.rowData);
             console.log(this.rowData)
-            
+            this.loader.hideSpinner();
             this.toasterService.showSuccess('Data loaded successfully');
             resolve(records.responseList); // Resolve with the actual data
           } else {
             console.error('Error:', records.errorMessage);
+            this.loader.hideSpinner();
             this.toasterService.showError('Failed to load data');
             reject(records.errorMessage); // Reject with error message
           }
-          this.loader.hideSpinner();
+          
         },
         error => {
           this.loader.hideSpinner();
@@ -371,7 +375,13 @@ export class StateComponent implements OnInit {
    onGridReady(params) {
     this.gridApi = params.api;
     this.gridColumnApi = params.columnApi;
-    this.loadState(false); // Assuming loadData is asynchronous
+    this.loadState(false)
+    .then((records: any) => {
+      this.statesList$.next(records);
+    }).catch(error => {
+      this.statesList$.next([]);
+      
+    });; // Assuming loadData is asynchronous
 
  
 
@@ -509,7 +519,13 @@ export class StateComponent implements OnInit {
         this.gridApi.setRowData(this.rowData); // Refresh the grid with updated rowData
         this.loader.hideSpinner();
         this.toasterService.showSuccess('Data saved successfully');
-        this.loadState(false);
+        this.loadState(false)
+        .then((records: any) => {
+          this.statesList$.next(records);
+        }).catch(error => {
+          this.statesList$.next([]);
+          
+        });;
         
       },
       error => {
